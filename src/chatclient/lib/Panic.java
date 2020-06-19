@@ -17,7 +17,6 @@
 
 package chatclient.lib;
 
-import java.net.Socket;
 import chatclient.Connection;
 
 public final class Panic {

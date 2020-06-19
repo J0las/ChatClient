@@ -22,7 +22,7 @@ import java.net.Socket;
 import java.util.Scanner;
 
 import chatclient.lib.ArrayModifications;
-import chatclient.lib.ConnectionErrorException;
+import chatclient.lib.ConnectionError;
 import chatclient.lib.Constants;
 
 class Client {
@@ -31,7 +31,7 @@ class Client {
 	Client(String name){
 		this.name = name;
 	}
-	void run() throws ConnectionErrorException{
+	void run() throws ConnectionError{
 		while(true) {
 			Connection[] cons =
 					Connections.modifyConnections(ArrayModifications.GET_CURRENT_CONNECTIONS,null);
@@ -40,7 +40,7 @@ class Client {
 			}
 		}
 	}
-	private void printNewMessages(Connection con) throws ConnectionErrorException {
+	private void printNewMessages(Connection con) throws ConnectionError {
 		if(con.isClosed()) Connections.modifyConnections(ArrayModifications.REMOVE_CONNECTION,con);
 		while(con.hasNewMessage()) {
 			System.out.println(con.getName()+"	"+con.getNewMessage());

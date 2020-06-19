@@ -15,25 +15,19 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chatclient;
-import java.io.IOException;
-import java.net.Socket;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-@SuppressWarnings("serial")
-public class ConnectionErrorException extends Exception {
+package chatclient.gui;
 
-	public ConnectionErrorException(String name, byte[] messageBytes,Socket socket) {
-		/*Tries to close the socket*/
-		try {
-			socket.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		/*Prints out connection name if defined and last message*/
-		System.out.println("An Exception occured in Connection: "+
-				((name.isEmpty())?"Undefinded Name":name)+
-				"\n"+Arrays.toString(messageBytes)+"\n"+
-				new String(messageBytes,StandardCharsets.UTF_8));
+import javax.swing.JTextPane;
+
+import chatclient.Connection;
+
+@SuppressWarnings("serial")
+class ChatWindow extends JTextPane {
+	private Connection con;
+	ChatWindow(Connection con){
+		this.con = con;
+	}
+	Connection getConnection() {
+		return con;
 	}
 }

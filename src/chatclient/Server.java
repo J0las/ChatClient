@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 
 import chatclient.lib.ArrayModifications;
-import chatclient.lib.ConnectionErrorException;
+import chatclient.lib.ConnectionError;
 import chatclient.lib.Constants;
 /*Server for accepting incoming connections*/
 class Server extends Thread {
@@ -49,7 +49,7 @@ class Server extends Thread {
 				/*Adds the new connection in accepting configuration to the shared ArrayList*/
 				Connections.modifyConnections(ArrayModifications.ADD_CONNECTION,
 							new Connection(server.accept(),name,false));
-			} catch (ConnectionErrorException | IOException e) {
+			} catch (ConnectionError | IOException e) {
 				e.printStackTrace();
 			}
 		}

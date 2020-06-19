@@ -1,2 +1,2 @@
 # ChatClient
- Enrypted chtclient for local networks
+ Enrypted chatclient for local networks

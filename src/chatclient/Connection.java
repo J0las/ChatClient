@@ -77,7 +77,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import chatclient.lib.ChatMagicNumbers;
 import chatclient.lib.ConnectionError;
-import chatclient.lib.ConnectionErrorException;
+import chatclient.lib.ConnectionError;
 import chatclient.lib.Constants;
 import chatclient.lib.Crypto;
 import chatclient.lib.CryptoModes;
@@ -100,7 +100,7 @@ public class Connection {
 	private Hash hash;
 	private Crypto crypto;
 	Connection(Socket socket,String ownName,boolean opendConnection) 
-				throws ConnectionErrorException{
+				throws ConnectionError{
 		this.hash = new Hash(this);
 		this.socket=socket;
 		try {
@@ -138,7 +138,7 @@ public class Connection {
 		return sc.hasNextLine();
 	}
 	/*Returns the content of the next Message*/
-	String getNewMessage() throws ConnectionErrorException{
+	String getNewMessage() throws ConnectionError{
 		/*Reads the base64 encoded message*/
 		String message = sc.nextLine();
 		/*Decodes the message into an bytearray*/
@@ -176,7 +176,7 @@ public class Connection {
 					StandardCharsets.UTF_8));
 	}
 	/*Sends the name of this ChatClient to the other ChatClient*/
-	private void sendName(String ownName) throws ConnectionErrorException {
+	private void sendName(String ownName) throws ConnectionError {
 		/*bytearray for the name + headerbyte*/
 		byte[] 	ownNameBytes 	= new byte[ownName.length()+Constants.HEADER_SIZE+Constants.CHECKSUM_SIZE];
 		/*Sets the headerbyte to CONNECTION_NAME*/
@@ -193,7 +193,7 @@ public class Connection {
 					StandardCharsets.UTF_8));
 	}
 	/*Recieves the name of the other ChatClient and stores it in name*/
-	private void recieveName() throws ConnectionErrorException{
+	private void recieveName() throws ConnectionError{
 		/*Waits for a new message*/
 		while(!sc.hasNextLine());
 		/*Reads the base64 encoded message*/
@@ -234,7 +234,7 @@ public class Connection {
 								StandardCharsets.UTF_8));	
 	}
 	/*Check if the header matches the specified magic*/
-	private void checkHeader(byte header) throws ConnectionErrorException{
+	private void checkHeader(byte header) throws ConnectionError{
 		/*Wait for the response*/
 		while(!sc.hasNextLine());
 		/*Check if the response contains the expected value*/
@@ -248,7 +248,7 @@ public class Connection {
 				socket.getInetAddress().getHostAddress()+":"+
 				socket.getLocalPort();
 	}
-	private void keyExchange(boolean opened) throws ConnectionErrorException {
+	private void keyExchange(boolean opened) throws ConnectionError {
 		try {
 			byte[] 	sharedSecret = new byte[0];
 			if(opened) {
@@ -282,10 +282,10 @@ public class Connection {
 									sharedSecret	= keyAgree.generateSecret();					
 			}
 		}catch(Exception e) {
-			throw new ConnectionErrorException("AES KEYEXCHANGE FAILED!".getBytes(StandardCharsets.UTF_8),this);
+			throw new ConnectionError("AES KEYEXCHANGE FAILED!".getBytes(StandardCharsets.UTF_8),this);
 		}
 	}
-	private void sendEncodedParams(byte[] encodedAES_Params) throws ConnectionErrorException{
+	private void sendEncodedParams(byte[] encodedAES_Params) throws ConnectionError{
 		byte[] 	message		= new byte[Constants.HEADER_SIZE*Constants.CHECKSUM_SIZE+encodedAES_Params.length];
 				message[Constants.HEADER_OFFSET]	
 						= ChatMagicNumbers.ENCODED_PARAMS;
@@ -294,7 +294,7 @@ public class Connection {
 				out.println(new String(Base64.getEncoder().encode(message),StandardCharsets.UTF_8));
 		
 	}
-	private byte[] recieveEncodedParams() throws ConnectionErrorException {
+	private byte[] recieveEncodedParams() throws ConnectionError {
 		while(!sc.hasNextLine());
 		byte[] message = Base64.getDecoder().decode(sc.nextLine().getBytes(StandardCharsets.UTF_8));
 		Panic.R_UNLESS(message[Constants.HEADER_OFFSET]==ChatMagicNumbers.ENCODED_PARAMS, message, this);
@@ -302,7 +302,7 @@ public class Connection {
 		return Arrays.copyOfRange(message, Constants.MESSAGE_OFFSET, message.length);
 	}
 	/*Sends the PublicKey of this ChatClient to the other ChatClient*/
-	void sendPubKey(KeyPair keyPair) throws ConnectionErrorException {
+	void sendPubKey(KeyPair keyPair) throws ConnectionError {
 		/*Gets the encoded PublicKey*/
 		byte[] 	pubKeyBytes 	= keyPair.getPublic().getEncoded();
 		/*Creates a buffer for the message*/
@@ -318,7 +318,7 @@ public class Connection {
 			out.println(Base64.getEncoder().encode(messageBytes));
 	}
 	/*Receives a Public Key extracts validates and returns it*/
-	byte[] recievePubKey() throws ConnectionErrorException {
+	byte[] recievePubKey() throws ConnectionError {
 		/*Wait for the incoming message*/
 		while(!sc.hasNextLine());
 		/*Decode the Base64 message*/

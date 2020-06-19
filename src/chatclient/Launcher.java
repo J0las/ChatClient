@@ -19,14 +19,14 @@ package chatclient;
 
 import java.util.Scanner;
 
-import chatclient.lib.ConnectionErrorException;
+import chatclient.lib.ConnectionError;
 
 public class Launcher {
 	private static Thread 	server;
 	private static String 	name 	= "Johan";
 	private static Client client	= new Client(name);
 	private static Scanner sc = new Scanner(System.in);
-	public static void main(String[] args) throws ConnectionErrorException {
+	public static void main(String[] args) throws ConnectionError {
 		/*Creates a server with the ChatClientName "Johan"*/
 		server = new Server("Johan");
 		/*Starts the server thread*/
