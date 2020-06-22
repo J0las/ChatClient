@@ -14,19 +14,11 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chatclient.gui;
+package chatclient.log;
 
-import javax.swing.JTextPane;
-
-import chatclient.Connection;
-
-@SuppressWarnings("serial")
-class ChatWindow extends JTextPane {
-	private Connection con;
-	ChatWindow(Connection con){
-		this.con = con;
-	}
-	Connection getConnection() {
-		return con;
-	}
+public enum LogType {
+	KEY_EXCHANGE_FAILED,
+	TEST_STING_DECRYPTION_FAILED,
+	CONNECTION_CLOSED,
+	
 }

@@ -14,19 +14,22 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chatclient.gui;
+package chatclient.log;
 
-import javax.swing.JTextPane;
-
-import chatclient.Connection;
-
-@SuppressWarnings("serial")
-class ChatWindow extends JTextPane {
-	private Connection con;
-	ChatWindow(Connection con){
-		this.con = con;
+public enum LogLevel {
+	INFO("[INFO]", "This just additional information"),
+	ERROR("[ERROR]", "An error has occurred");
+	
+	private final String logLevel, description;
+	
+	LogLevel(String logLevel, String description){
+		this.logLevel		= logLevel;
+		this.description	= description;
 	}
-	Connection getConnection() {
-		return con;
+	public String getLogLevel() {
+		return logLevel;
+	}
+	public String getLogLevelDesc() {
+		return description;
 	}
 }
