@@ -19,6 +19,7 @@ package chatclient;
 import java.util.Scanner;
 
 import chatclient.lib.ConnectionError;
+import chatclient.log.Log;
 
 public class Launcher {
 	private static Thread 	server;
@@ -26,6 +27,7 @@ public class Launcher {
 	private static Client client	= new Client(name);
 	private static Scanner sc = new Scanner(System.in);
 	public static void main(String[] args) throws ConnectionError {
+		Log.init(true);
 		/*Creates a server with the ChatClientName "Johan"*/
 		server = new Server("Johan");
 		/*Starts the server thread*/

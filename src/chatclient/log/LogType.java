@@ -17,8 +17,22 @@
 package chatclient.log;
 
 public enum LogType {
-	KEY_EXCHANGE_FAILED,
-	TEST_STING_DECRYPTION_FAILED,
-	CONNECTION_CLOSED,
+	KEY_EXCHANGE_FAILED(LogLevel.ERROR),
+	TEST_STING_DECRYPTION_FAILED(LogLevel.ERROR),
+	ILLEGAL_ARGUMENT_ERROR(LogLevel.ERROR),
+	CONNECTION_CLOSED(LogLevel.INFO),
+	AES_KEY_HASH(LogLevel.INFO),
+	MESSAGE_SEND(LogLevel.INFO),
+	MESSAGE_RECIEVED(LogLevel.INFO),
+	CREATED_NEW_CONNECTION(LogLevel.INFO),
+	INCOMMING_CONNECTION(LogLevel.INFO);
 	
+	private LogLevel logLevel;
+	
+	LogType(LogLevel logLevel) {
+		this.logLevel = logLevel;
+	}
+	public LogLevel getLogLevel() {
+		return logLevel;
+	}
 }

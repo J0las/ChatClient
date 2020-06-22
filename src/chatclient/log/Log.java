@@ -21,10 +21,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 
 public class Log {
-	Log(boolean enabled){
+	private static boolean setUp = false;
+	public static void init (boolean enabled){
 		if(enabled) {
 			File file = new File(System.getProperty("user.home") + "\\Desktop\\ChatClient.log");
 			if(file.exists()) file.delete();
@@ -39,21 +43,48 @@ public class Log {
 			} catch (FileNotFoundException e) {
 				throw new AssertionError();
 			}
-			System.err.println(LocalDateTime.now()+"\tStarted logging");
-			System.err.println(LogLevel.INFO.getLogLevel()+		":\t"+LogLevel.INFO.getLogLevelDesc());
+			System.err.println(getCurrentDateTime()+"\tStarted logging");
+			System.err.println(LogLevel.INFO.getLogLevel()+		":\t\t"+LogLevel.INFO.getLogLevelDesc());
 			System.err.println(LogLevel.ERROR.getLogLevel()+	":\t"+LogLevel.ERROR.getLogLevelDesc());
 		} else {
 			System.setErr(new PrintStream(OutputStream.nullOutputStream()));
 		}
+		setUp = true;
 	}
-	void log(byte[] message, LogLevel logLevel) {
+	public static void log(String[] args, LogType logType) {
+		if(!setUp) System.exit(0);
 		StringBuilder sb = new StringBuilder();
-		sb.append(logLevel.getLogLevel()+"\t");
-		sb.append(LocalDateTime.now());
+		sb.append(logType.getLogLevel().getLogLevel());
+		sb.append(" \t");
+		sb.append(getCurrentDateTime());
 		sb.append("\t");
-		switch(logLevel) {
-		case INFO:
-			sb.append()
+		switch(logType) {
+		case INCOMMING_CONNECTION:
+			if(args.length!=3) log(null, LogType.ILLEGAL_ARGUMENT_ERROR);
+			sb.append();
+			break;
+		case CONNECTION_CLOSED:
+
+		case AES_KEY_HASH:
+			break;
+		case CREATED_NEW_CONNECTION:
+			break;
+		case KEY_EXCHANGE_FAILED:
+			break;
+		case MESSAGE_RECIEVED:
+			break;
+		case MESSAGE_SEND:
+			break;
+		case TEST_STING_DECRYPTION_FAILED:
+			break;
+		case ILLEGAL_ARGUMENT_ERROR:
+			
+			break;
+		default:
+			throw new IllegalArgumentException();
 		}
+	}
+	private static String getCurrentDateTime() {
+		return LocalDateTime.now().format(DateTimeFormatter.ofPattern("<yyyy-MM-dd | HH:mm:ss>"));
 	}
 }
