@@ -21,9 +21,9 @@ import java.net.ServerSocket;
 
 import chatclient.lib.ArrayModifications;
 /*Safely shuts down the server and open connections on program termination*/
-class ShutDownConnections extends Thread {
+class ShutDownHandler extends Thread {
 	private ServerSocket server;
-	ShutDownConnections(ServerSocket server){
+	ShutDownHandler(ServerSocket server){
 		this.server = server;
 	}
 	@Override

@@ -18,10 +18,13 @@ package chatclient;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.Socket;
 
 import chatclient.lib.ArrayModifications;
 import chatclient.lib.ConnectionError;
 import chatclient.lib.Constants;
+import chatclient.log.Log;
+import chatclient.log.LogType;
 /*Server for accepting incoming connections*/
 class Server extends Thread {
 	/*Name of this ChatClient, passed to the other side of the connection*/
@@ -38,16 +41,20 @@ class Server extends Thread {
 			server = new ServerSocket(Constants.STANDARD_PORT);
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
-		/*Adds a shutdownhook to safely close the server on program termination*/
-		Runtime.getRuntime().addShutdownHook(new ShutDownConnections(server));
+		}/*Adds a shutdownhook to safely close the server on program termination*/
+		Runtime.getRuntime().addShutdownHook(new ShutDownHandler(server));
 		System.out.println("Started server");
 		/*Loop for accepting new connections*/
 		while(true) {
 			try {
+				/*Logs the incoming connection*/
+				Socket s = server.accept();
+				Log.log(new String[] {
+					s.getInetAddress().getHostAddress()+"/"+s.getLocalPort()},
+				LogType.INCOMMING_CONNECTION);
 				/*Adds the new connection in accepting configuration to the shared ArrayList*/
 				Connections.modifyConnections(ArrayModifications.ADD_CONNECTION,
-							new Connection(server.accept(),name,false));
+							new Connection(s,name,false));
 			} catch (ConnectionError | IOException e) {
 				e.printStackTrace();
 			}
