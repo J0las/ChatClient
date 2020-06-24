@@ -82,6 +82,8 @@ import chatclient.lib.Crypto;
 import chatclient.lib.CryptoModes;
 import chatclient.lib.HashModes;
 import chatclient.lib.Panic;
+import chatclient.log.Log;
+import chatclient.log.LogType;
 import chatclient.lib.Hash;
 
 public class Connection {
@@ -95,8 +97,9 @@ public class Connection {
 	private Scanner 		sc;
 	/*Represents the state of the connection*/
 	private boolean 		closed 	= false;
-	/*Message digest for creating or validating hashes*/
+	/*Hashobject  for creating or validating hashes*/
 	private Hash hash;
+	/*Cryptoobject for encrypting and decrypting messages and hashes*/
 	private Crypto crypto;
 	Connection(Socket socket,String ownName,boolean opendConnection) 
 				throws ConnectionError{
@@ -224,6 +227,9 @@ public class Connection {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		Log.log(new String[] {
+				socket.getInetAddress().getHostAddress()+" / "+socket.getPort()
+		}, LogType.CONNECTION_CLOSED);
 		/*sets the closed flag to true*/
 		closed = true;
 	}
@@ -329,7 +335,6 @@ public class Connection {
 		/*Extract the Public Key*/
 		return Arrays.copyOfRange(messageBytes, Constants.MESSAGE_OFFSET, messageBytes.length);
 	}
-
 	byte[] setUpCrypto(SecretKeySpec AES_Key) throws InvalidKeyException, IOException {
 		try {
 			Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
