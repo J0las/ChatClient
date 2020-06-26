@@ -51,23 +51,20 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.security.AlgorithmParameters;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Scanner;
 
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyAgreement;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.interfaces.DHPublicKey;
@@ -76,32 +73,33 @@ import javax.crypto.spec.SecretKeySpec;
 
 import chatclient.lib.ChatMagicNumbers;
 import chatclient.lib.ConnectionError;
-import chatclient.lib.ConnectionError;
 import chatclient.lib.Constants;
 import chatclient.lib.Crypto;
-import chatclient.lib.CryptoModes;
+import chatclient.lib.Hash;
 import chatclient.lib.HashModes;
 import chatclient.lib.Panic;
 import chatclient.log.Log;
 import chatclient.log.LogType;
-import chatclient.lib.Hash;
 
 public class Connection {
 	/*Socket for connection to the other ChatClient*/
-	private Socket 			socket;
+	private Socket 		socket;
 	/*printstream for easy output*/
-	private PrintStream 	out;
+	private PrintStream out;
 	/*Name of the other ChatCLient*/
-	private String 			name	= "";
+	private String 		name	= "";
+	/*Name of this
+	 *  ChatCLient*/
+	private String		ownName = "";
 	/*scanner for easy input*/
-	private Scanner 		sc;
+	private Scanner 	sc;
 	/*Represents the state of the connection*/
-	private boolean 		closed 	= false;
+	private boolean 	closed 	= false;
 	/*Hashobject  for creating or validating hashes*/
-	private Hash hash;
+	private Hash 		hash;
 	/*Cryptoobject for encrypting and decrypting messages and hashes*/
-	private Crypto crypto;
-	Connection(Socket socket,String ownName,boolean opendConnection) 
+	private Crypto 		crypto;
+	Connection(Socket socket,String ownName,boolean openedConnection) 
 				throws ConnectionError{
 		this.hash = new Hash(this);
 		this.socket=socket;
@@ -134,6 +132,7 @@ public class Connection {
 			/*Sends his own Name to the other ChatCllient*/
 			sendName(ownName);
 		}
+		keyExchange(opendConnection);
 	}
 	/*Return true if there is a new Message*/
 	boolean hasNewMessage(){
@@ -284,10 +283,14 @@ public class Connection {
 									keyAgree.init(keyPair.getPrivate());
 					sendPubKey(keyPair);
 									keyAgree.doPhase(otherPubKey, true);
-									sharedSecret	= keyAgree.generateSecret();					
+									sharedSecret	= keyAgree.generateSecret();
+				SecretKeySpec		AES_Key			= new SecretKeySpec(sharedSecret, 0, Constants.AES_KEY_LENGTH, "AES");			
+									this.crypto = new Crypto(AES_Key, recieveEncodedParams());
 			}
-		}catch(Exception e) {
+		}catch(IOException | InvalidKeyException | InvalidAlgorithmParameterException | InvalidKeySpecException e) {
 			throw new ConnectionError("AES KEYEXCHANGE FAILED!".getBytes(StandardCharsets.UTF_8),this);
+		}catch(NoSuchAlgorithmException e) {
+			throw new AssertionError();
 		}
 	}
 	private void sendEncodedParams(byte[] encodedAES_Params) throws ConnectionError{
