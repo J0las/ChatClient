@@ -246,6 +246,7 @@ public class Connection{
 	private void keyExchange(boolean opened) throws ConnectionError {
 		try {
 			byte[] 	sharedSecret = new byte[0];
+			SecretKeySpec			AES_Key;		
 			if(opened) {
 				KeyPairGenerator 	keyGen 			= KeyPairGenerator.getInstance("DH");
 					keyGen.initialize(Constants.DH_KEY_SIZE);
@@ -258,7 +259,7 @@ public class Connection{
 				PublicKey			otherPubKey		= keyFactory.generatePublic(x509KeySpec);
 									keyAgree.doPhase(otherPubKey, true);
 									sharedSecret	= keyAgree.generateSecret();
-				SecretKeySpec 		AES_Key 		= new SecretKeySpec(sharedSecret, 0, Constants.AES_KEY_LENGTH, "AES");
+					AES_Key 		= new SecretKeySpec(sharedSecret, 0, Constants.AES_KEY_LENGTH, "AES");
 				byte[] 				encodedAES_Params	= setUpCrypto(AES_Key);
 					sendEncodedParams(encodedAES_Params);
 									this.crypto = new Crypto(AES_Key, encodedAES_Params);
@@ -276,9 +277,15 @@ public class Connection{
 					sendPubKey(keyPair);
 									keyAgree.doPhase(otherPubKey, true);
 									sharedSecret	= keyAgree.generateSecret();
-				SecretKeySpec		AES_Key			= new SecretKeySpec(sharedSecret, 0, Constants.AES_KEY_LENGTH, "AES");			
+					AES_Key							= new SecretKeySpec(sharedSecret, 0, Constants.AES_KEY_LENGTH, "AES");			
 									this.crypto = new Crypto(AES_Key, recieveEncodedParams());
 			}
+			Log.log(new String[] {
+					socket.getInetAddress().getHostAddress()+"/"+socket.getPort(),
+					null,
+					ownName,
+					new String(Base64.getEncoder().encode(hash.hash(AES_Key.getEncoded(),HashModes.CREATE_HASH)),StandardCharsets.UTF_8)
+			}, LogType.AES_KEY_HASH);
 		}catch(IOException | InvalidKeyException | InvalidAlgorithmParameterException | InvalidKeySpecException e) {
 			throw new ConnectionError("AES KEYEXCHANGE FAILED!".getBytes(StandardCharsets.UTF_8),this);
 		}catch(NoSuchAlgorithmException e) {
@@ -351,7 +358,9 @@ public class Connection{
 					message, Constants.MESSAGE_OFFSET, Constants.TEST_STRING.length());
 			byte[] enc_message = crypto.cryptoOperation(Arrays.copyOfRange(message, Constants.CHECKSUM_OFFSET, message.length), CryptoModes.ENCRYPT);
 			System.arraycopy(enc_message, 0, message, Constants.CHECKSUM_OFFSET, enc_message.length);
+			System.out.println("Sending test string");
 			out.println(new String(Base64.getEncoder().encode(message),StandardCharsets.UTF_8));
+			System.out.println("done");
 			byte recieved = extractHeader();
 			if(recieved != ChatMagicNumbers.ENC_SUCCESS) {
 				Log.log(new String[] {

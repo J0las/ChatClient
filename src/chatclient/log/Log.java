@@ -85,10 +85,8 @@ public class Log {
 			if(args.length != 4) throw new IllegalArgumentException();
 			sb.append("SHA256 over AES_KEY for Connection: ");
 			sb.append(args[IP_PORT]);
-			sb.append(" from: ");
-			sb.append(args[OWN_NAME]);
 			sb.append(" to: ");
-			sb.append(args[OTHER_NAME]);
+			sb.append(args[OWN_NAME]);
 			sb.append("\t");
 			byteArrayToHexString(sb,Base64.getDecoder().decode(args[AES_KEY_HASH].getBytes(StandardCharsets.UTF_8)));
 			break;
