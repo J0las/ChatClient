@@ -47,7 +47,7 @@ class Client {
 	private void printNewMessages(Connection con) throws ConnectionError {
 		if(con.isClosed()) Connections.modifyConnections(ArrayModifications.REMOVE_CONNECTION,con);
 		while(con.hasNewMessage()) {
-			System.out.println(con.getName()+"	"+con.getNewMessage());
+			System.out.println(con.getOtherName()+"	"+con.getNewMessage());
 		}
 	}
 	void newConnection() throws ConnectionError{

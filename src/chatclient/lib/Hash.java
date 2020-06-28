@@ -21,6 +21,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
 import chatclient.Connection;
+import chatclient.log.Log;
+import chatclient.log.LogType;
 
 public class Hash {
 	public Hash(Connection con){
@@ -47,6 +49,11 @@ public class Hash {
 			/*Compute the hash*/
 			byte[] computedHash = md.digest(messageContent);
 			/*Throws an Exception received and computed checksum do not match*/
+			if(!Arrays.equals(computedHash,checksum)) {
+				Log.log(new String[] {
+						con.getIP_PORT(),
+				}, LogType.HASH_INVALID);
+			}
 			Panic.R_UNLESS(Arrays.equals(computedHash,checksum), message,con);
 			break;
 		case CREATE_HASH:

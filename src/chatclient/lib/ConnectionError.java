@@ -33,7 +33,7 @@ public class ConnectionError extends Error {
 		}
 		/*Prints out connection name if defined and last message*/
 		System.out.println("An Exception occured in Connection: "+
-				((con.getName().isEmpty())?"Undefinded Name":con.getName())+
+				((con.getOtherName().isEmpty())?"Undefinded Name":con.getOtherName())+
 				"\n"+Arrays.toString(messageBytes)+"\n"+
 				new String(messageBytes,StandardCharsets.UTF_8));
 	}

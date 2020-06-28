@@ -17,7 +17,7 @@
 package chatclient.log;
 
 public enum LogLevel {
-	INFO("[INFO]", "This just additional information"),
+	INFO("[INFO]\t", "This just additional information"),
 	ERROR("[ERROR]", "An error has occurred");
 	
 	private final String logLevel, description;

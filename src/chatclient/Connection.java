@@ -145,7 +145,7 @@ public class Connection{
 		}
 		System.out.println(ownName+" finished");
 		Log.log(new String[] {
-				socket.getInetAddress().getHostAddress()+"/"+socket.getPort(),
+				getIP_PORT(),
 				otherName
 		}, LogType.CONNECTION_ESTABLISHED);
 	}
@@ -281,7 +281,7 @@ public class Connection{
 									this.crypto = new Crypto(AES_Key, recieveEncodedParams());
 			}
 			Log.log(new String[] {
-					socket.getInetAddress().getHostAddress()+"/"+socket.getPort(),
+					getIP_PORT(),
 					null,
 					ownName,
 					new String(Base64.getEncoder().encode(hash.hash(AES_Key.getEncoded(),HashModes.CREATE_HASH)),StandardCharsets.UTF_8)
@@ -364,19 +364,18 @@ public class Connection{
 			byte recieved = extractHeader();
 			if(recieved != ChatMagicNumbers.ENC_SUCCESS) {
 				Log.log(new String[] {
-						socket.getInetAddress().getHostAddress()+"/"+socket.getPort()
+						getIP_PORT()
 				}, LogType.TEST_STING_DECRYPTION_FAILED);
 				throw new ConnectionError(message, this);
 			}
 		} else {
-			while(sc.hasNextLine());
+			while(!sc.hasNextLine());
 			byte[] message = Base64.getDecoder().decode(sc.nextLine().getBytes(StandardCharsets.UTF_8));
 			Panic.R_UNLESS(message[Constants.HEADER_OFFSET] == ChatMagicNumbers.ENC_TEST_STRING, message, this);
-			System.arraycopy(
-					crypto.cryptoOperation(
-							Arrays.copyOfRange(message, Constants.CHECKSUM_OFFSET, message.length),
-							CryptoModes.DECRYPT),
-					0, message,Constants.HEADER_OFFSET,message.length-Constants.HEADER_SIZE);
+			byte[] decMessage = crypto.cryptoOperation(
+					message,CryptoModes.DECRYPT);
+			byte[] toHash = new byte[decMessage.length+Constants.HEADER_SIZE];
+			System.arraycopy(decMessage, 0, toHash, Constants.HEADER_OFFSET, decMessage.length);
 			hash.hash(message, HashModes.VALIDATE_HASH);
 			if(Arrays.equals(
 					Arrays.copyOfRange(message, Constants.MESSAGE_OFFSET, message.length-Constants.HEADER_SIZE-Constants.CHECKSUM_SIZE),
@@ -385,7 +384,7 @@ public class Connection{
 			}else{
 				sendHeader(ChatMagicNumbers.ENC_ERROR);
 				Log.log(new String[] {
-					socket.getInetAddress().getHostAddress()+"/"+socket.getPort()
+					getIP_PORT()
 				} , LogType.TEST_STING_DECRYPTION_FAILED);
 				throw new ConnectionError(message, this);
 			}
@@ -395,7 +394,7 @@ public class Connection{
 		return this.socket;
 	}
 	/*Returns the name of the other ChatClient*/
-	public String getName() {
+	public String getOtherName() {
 		return this.otherName;
 	}
 	@Override
@@ -404,5 +403,8 @@ public class Connection{
 		return "Connection: "+otherName+" to ip: "+
 				socket.getInetAddress().getHostAddress()+":"+
 				socket.getLocalPort();
+	}
+	public String getIP_PORT() {
+		return socket.getInetAddress().getHostAddress()+"/"+socket.getPort();
 	}
 }	

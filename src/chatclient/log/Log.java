@@ -54,8 +54,8 @@ public class Log {
 				throw new AssertionError();
 			}
 			System.err.println(getCurrentDateTime()+"\tStarted logging");
-			System.err.println(LogLevel.INFO.getLogLevel()+		":\t\t"+LogLevel.INFO.getLogLevelDesc());
-			System.err.println(LogLevel.ERROR.getLogLevel()+	":\t"+LogLevel.ERROR.getLogLevelDesc());
+			System.err.println(LogLevel.INFO.getLogLevel()+		"\t"+LogLevel.INFO.getLogLevelDesc());
+			System.err.println(LogLevel.ERROR.getLogLevel()+	"\t\t"+LogLevel.ERROR.getLogLevelDesc());
 		} else {
 			System.setErr(new PrintStream(OutputStream.nullOutputStream()));
 		}
@@ -137,6 +137,11 @@ public class Log {
 			sb.append(args[IP_PORT]);
 			sb.append(" / ");
 			sb.append(args[OTHER_NAME]);
+			break;
+		case HASH_INVALID:
+			if(args.length != 1) throw new IllegalArgumentException();
+			sb.append("Hash check failed for connection to: ");
+			sb.append(args[IP_PORT]);
 			break;
 		default:
 			sb.append("Illegal arguments pased!");

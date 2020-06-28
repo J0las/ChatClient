@@ -19,6 +19,7 @@ package chatclient.log;
 public enum LogType {
 	KEY_EXCHANGE_FAILED(LogLevel.ERROR),
 	TEST_STING_DECRYPTION_FAILED(LogLevel.ERROR),
+	HASH_INVALID(LogLevel.ERROR),
 	CONNECTION_CLOSED(LogLevel.INFO),
 	AES_KEY_HASH(LogLevel.INFO),
 	MESSAGE_SEND(LogLevel.INFO),
