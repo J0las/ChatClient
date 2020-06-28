@@ -71,11 +71,13 @@ public class Crypto {
 				return cipher.doFinal(data, Constants.CHECKSUM_OFFSET,
 												data.length-Constants.HEADER_SIZE);
 			} catch (IllegalBlockSizeException | BadPaddingException | InvalidKeyException |
-						InvalidAlgorithmParameterException | IOException | NoSuchAlgorithmException e) {
-				/*This should never happen*/
+					 IOException e) {
 				e.printStackTrace();
+			} catch (InvalidAlgorithmParameterException | NoSuchAlgorithmException e) {
+				throw new AssertionError();
 			}
+		default:
+			throw new IllegalArgumentException();
 		}
-		return null;
 	}
 }
