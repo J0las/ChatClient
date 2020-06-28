@@ -37,7 +37,7 @@ public class Hash {
 	public synchronized byte[] hash(byte[] message , HashModes mode) throws ConnectionError{
 		switch(mode) {
 		/*Case for validating a given hash*/
-			case validate_Hash:
+			case VALIDATE_HASH:
 			/*Extract the Checksum from the message*/
 			byte[] 		checksum		= Arrays.copyOfRange(message, Constants.CHECKSUM_OFFSET,
 											Constants.MESSAGE_OFFSET);
@@ -49,7 +49,7 @@ public class Hash {
 			/*Throws an Exception received and computed checksum do not match*/
 			Panic.R_UNLESS(Arrays.equals(computedHash,checksum), message,con);
 			break;
-		case create_Hash:
+		case CREATE_HASH:
 			/*Return the hash of the message*/
 			return md.digest(message);
 		}

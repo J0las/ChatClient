@@ -16,8 +16,10 @@
 
 package chatclient;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.Scanner;
 
 import chatclient.lib.ArrayModifications;
@@ -31,6 +33,8 @@ class Client {
 		this.name = name;
 	}
 	void run() throws ConnectionError{
+		newConnection();
+		Connections.modifyConnections(ArrayModifications.GET_CURRENT_CONNECTIONS, null)[0].sendMessage("Lol");
 		while(true) {
 			Connection[] cons =
 					Connections.modifyConnections(ArrayModifications.GET_CURRENT_CONNECTIONS,null);
@@ -45,7 +49,7 @@ class Client {
 			System.out.println(con.getName()+"	"+con.getNewMessage());
 		}
 	}
-	void newConnection() throws Exception{
+	void newConnection() throws ConnectionError{
 		/*Buffer for the raw ip*/
 		byte[] ipBytes = new byte[4];
 		{	
@@ -59,9 +63,13 @@ class Client {
 			}
 		}
 		/*Returns a new Connection*/
-			Connections.modifyConnections(ArrayModifications.ADD_CONNECTION,new Connection(
-						new Socket(InetAddress.getByAddress(ipBytes),
-								Constants.STANDARD_PORT),
-						name, true));
+			try {
+				Connections.modifyConnections(ArrayModifications.ADD_CONNECTION,new Connection(
+							new Socket(InetAddress.getByAddress(ipBytes),
+									Constants.STANDARD_PORT),
+							name, true));
+			} catch (IOException e) {
+				throw new ConnectionError("test".getBytes(),null);
+			}
 	}
 }

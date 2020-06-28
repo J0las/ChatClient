@@ -17,6 +17,6 @@
 package chatclient.lib;
 
 public enum HashModes {
-	create_Hash,
-	validate_Hash
+	CREATE_HASH,
+	VALIDATE_HASH
 }

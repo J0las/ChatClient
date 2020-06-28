@@ -64,7 +64,9 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Scanner;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyAgreement;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.interfaces.DHPublicKey;
@@ -75,6 +77,7 @@ import chatclient.lib.ChatMagicNumbers;
 import chatclient.lib.ConnectionError;
 import chatclient.lib.Constants;
 import chatclient.lib.Crypto;
+import chatclient.lib.CryptoModes;
 import chatclient.lib.Hash;
 import chatclient.lib.HashModes;
 import chatclient.lib.Panic;
@@ -87,7 +90,7 @@ public class Connection {
 	/*printstream for easy output*/
 	private PrintStream out;
 	/*Name of the other ChatCLient*/
-	private String 		name	= "";
+	private String 		otherName	= "";
 	/*Name of this
 	 *  ChatCLient*/
 	private String		ownName = "";
@@ -112,15 +115,12 @@ public class Connection {
 			e.printStackTrace();
 		}
 		/*Branch if the connection was opened from this ChatClient*/
-		if(opendConnection){
+		if(openedConnection){
 			/*Sends the first header*/
 			sendHeader(ChatMagicNumbers.HELLO);
 			/*Checks if the response is valid*/
 			checkHeader(ChatMagicNumbers.ACCEPTED_CONNECTION);
 			/*Sends the own name to the other ChatClient*/
-			sendName(ownName);
-			/*Receives the name of the other ChatClient*/
-			recieveName();
 		/*Branch if the connection was opened from the other ChatClient*/
 		}else {
 			/*Checks if the first Message is valid*/
@@ -128,11 +128,23 @@ public class Connection {
 			/*Send the Accepted Connection Header*/
 			sendHeader(ChatMagicNumbers.ACCEPTED_CONNECTION);
 			/*Receives the name of the other ChatClient*/
+		}
+		keyExchange(openedConnection);
+		checkEncryption(openedConnection);
+		if(openedConnection) {
+			sendName(ownName);
+			/*Receives the name of the other ChatClient*/
+			recieveName();
+		} else {
+			/*Receives the name of the other ChatClient*/
 			recieveName();
 			/*Sends his own Name to the other ChatCllient*/
 			sendName(ownName);
 		}
-		keyExchange(opendConnection);
+		Log.log(new String[] {
+				socket.getInetAddress().getHostAddress()+"/"+socket.getPort(),
+				otherName
+		}, LogType.CONNECTION_ESTABLISHED);
 	}
 	/*Return true if there is a new Message*/
 	boolean hasNewMessage(){
@@ -148,7 +160,7 @@ public class Connection {
 		/*Check if the header is as expected*/
 		Panic.R_UNLESS(messageBytes[Constants.HEADER_OFFSET] == ChatMagicNumbers.ENC_MESSAGE,messageBytes,this);
 		/*Validate the messageContents Checksum*/
-		hash.hash(messageBytes,HashModes.validate_Hash);
+		hash.hash(messageBytes,HashModes.VALIDATE_HASH);
 		/*Extract the content of the message*/
 		messageBytes=Arrays.copyOfRange(messageBytes, Constants.CHECKSUM_OFFSET + Constants.CHECKSUM_SIZE,
 						messageBytes.length);
@@ -163,7 +175,7 @@ public class Connection {
 		messageBytes[Constants.HEADER_OFFSET] = ChatMagicNumbers.ENC_MESSAGE;
 		/*Computes the checksum over the messageContents and writes it into the buffer*/
 		try {
-			System.arraycopy(hash.hash(message.getBytes(StandardCharsets.UTF_8), HashModes.create_Hash), 0,
+			System.arraycopy(hash.hash(message.getBytes(StandardCharsets.UTF_8), HashModes.CREATE_HASH), 0,
 							messageBytes, Constants.CHECKSUM_OFFSET, Constants.CHECKSUM_SIZE);
 		} catch (ConnectionError e) {
 			e.printStackTrace();
@@ -183,13 +195,15 @@ public class Connection {
 		/*Sets the headerbyte to CONNECTION_NAME*/
 				ownNameBytes[0] = ChatMagicNumbers.CONNECTION_NAME;
 		/*Compute the CRC32 over the message and write it into the buffer*/
-		System.arraycopy(hash.hash(ownName.getBytes(StandardCharsets.UTF_8),HashModes.create_Hash), 0,
+		System.arraycopy(hash.hash(ownName.getBytes(StandardCharsets.UTF_8),HashModes.CREATE_HASH), 0,
 				ownNameBytes,Constants.CHECKSUM_OFFSET, Constants.CHECKSUM_SIZE);
 		/*Appends the name contents to the header*/
 		System.arraycopy(ownName.getBytes(StandardCharsets.UTF_8), 0,
 						ownNameBytes,Constants.MESSAGE_OFFSET,
 						ownName.length());
 		/*Sends the name as base64 encoded String*/
+		System.out.println(new String(Base64.getEncoder().encode(ownNameBytes),
+				StandardCharsets.UTF_8));
 		out.println(new String(Base64.getEncoder().encode(ownNameBytes),
 					StandardCharsets.UTF_8));
 	}
@@ -199,16 +213,17 @@ public class Connection {
 		while(!sc.hasNextLine());
 		/*Reads the base64 encoded message*/
 		String 	name = sc.nextLine();
+		System.out.println(name.length());
 		/*decodes the message*/
 		byte[] 	nameBytes = Base64.getDecoder().decode(name.getBytes(StandardCharsets.UTF_8));
 		/*Validates the CRC32 CHecksum over the name*/
-			hash.hash(nameBytes, HashModes.validate_Hash);
+			hash.hash(nameBytes, HashModes.VALIDATE_HASH);
 		/*Checks if the headervalue is as expected*/ 
 			Panic.R_UNLESS(nameBytes[0] == ChatMagicNumbers.CONNECTION_NAME,nameBytes,this);
 		/*Copys the content of the message*/
 				nameBytes = Arrays.copyOfRange(nameBytes, Constants.MESSAGE_OFFSET, nameBytes.length);
 		/*Sets name to the String representation of the message*/
-		this.name = new String(nameBytes,StandardCharsets.UTF_8);
+		this.otherName = new String(nameBytes,StandardCharsets.UTF_8);
 	}
 	/*Returns true if the connection was closed*/
 	boolean isClosed() {
@@ -245,12 +260,12 @@ public class Connection {
 		byte[] response = Base64.getDecoder().decode(sc.nextLine());
 		Panic.R_UNLESS(response[Constants.HEADER_OFFSET] == header,response,this);
 	}
-	@Override
-	/*Returns a String containing the other ChatClients name with his ip address and port*/
-	public String toString() {
-		return "Connection: "+name+" to ip: "+
-				socket.getInetAddress().getHostAddress()+":"+
-				socket.getLocalPort();
+	private byte extractHeader() {
+		/*Wait for the response*/
+		while(!sc.hasNextLine());
+		/*Check if the response contains the expected value*/
+		byte[] response = Base64.getDecoder().decode(sc.nextLine());
+		return response[Constants.HEADER_OFFSET];
 	}
 	private void keyExchange(boolean opened) throws ConnectionError {
 		try {
@@ -266,10 +281,11 @@ public class Connection {
 				X509EncodedKeySpec	x509KeySpec		= new X509EncodedKeySpec(recievePubKey());
 				PublicKey			otherPubKey		= keyFactory.generatePublic(x509KeySpec);
 									keyAgree.doPhase(otherPubKey, true);
+									sharedSecret	= keyAgree.generateSecret();
 				SecretKeySpec 		AES_Key 		= new SecretKeySpec(sharedSecret, 0, Constants.AES_KEY_LENGTH, "AES");
 				byte[] 				encodedAES_Params	= setUpCrypto(AES_Key);
-									this.crypto = new Crypto(AES_Key, encodedAES_Params);
 					sendEncodedParams(encodedAES_Params);
+									this.crypto = new Crypto(AES_Key, encodedAES_Params);
 									
 			}else {
 				KeyFactory 			keyFactory 		= KeyFactory.getInstance("DH");
@@ -294,10 +310,10 @@ public class Connection {
 		}
 	}
 	private void sendEncodedParams(byte[] encodedAES_Params) throws ConnectionError{
-		byte[] 	message		= new byte[Constants.HEADER_SIZE*Constants.CHECKSUM_SIZE+encodedAES_Params.length];
+		byte[] 	message		= new byte[Constants.HEADER_SIZE+Constants.CHECKSUM_SIZE+encodedAES_Params.length];
 				message[Constants.HEADER_OFFSET]	
 						= ChatMagicNumbers.ENCODED_PARAMS;
-				System.arraycopy(hash.hash(message, HashModes.create_Hash), 0, message, Constants.CHECKSUM_OFFSET, Constants.CHECKSUM_SIZE);
+				System.arraycopy(hash.hash(encodedAES_Params, HashModes.CREATE_HASH), 0, message, Constants.CHECKSUM_OFFSET, Constants.CHECKSUM_SIZE);
 				System.arraycopy(encodedAES_Params, 0, message, Constants.MESSAGE_OFFSET, encodedAES_Params.length);
 				out.println(new String(Base64.getEncoder().encode(message),StandardCharsets.UTF_8));
 		
@@ -306,7 +322,7 @@ public class Connection {
 		while(!sc.hasNextLine());
 		byte[] message = Base64.getDecoder().decode(sc.nextLine().getBytes(StandardCharsets.UTF_8));
 		Panic.R_UNLESS(message[Constants.HEADER_OFFSET]==ChatMagicNumbers.ENCODED_PARAMS, message, this);
-		hash.hash(message, HashModes.validate_Hash);
+		hash.hash(message, HashModes.VALIDATE_HASH);
 		return Arrays.copyOfRange(message, Constants.MESSAGE_OFFSET, message.length);
 	}
 	/*Sends the PublicKey of this ChatClient to the other ChatClient*/
@@ -318,12 +334,12 @@ public class Connection {
 		/*Writes the headerbyte into the buffer*/
 				messageBytes[Constants.HEADER_OFFSET] = ChatMagicNumbers.PUBLIC_KEY;
 		/*Copies the computed checksum into the buffer*/
-			System.arraycopy(hash.hash(pubKeyBytes, HashModes.create_Hash), 0,
+			System.arraycopy(hash.hash(pubKeyBytes, HashModes.CREATE_HASH), 0,
 						messageBytes, Constants.CHECKSUM_OFFSET, Constants.CHECKSUM_SIZE);
 		/*Writes the Public key into the message*/
 			System.arraycopy(pubKeyBytes, 0, messageBytes, Constants.MESSAGE_OFFSET, pubKeyBytes.length);
 		/*Writes the buffer into the outputstream*/
-			out.println(Base64.getEncoder().encode(messageBytes));
+			out.println(new String(Base64.getEncoder().encode(messageBytes),StandardCharsets.UTF_8));
 	}
 	/*Receives a Public Key extracts validates and returns it*/
 	byte[] recievePubKey() throws ConnectionError {
@@ -334,18 +350,60 @@ public class Connection {
 		/*Validate the Header*/
 		Panic.R_UNLESS(messageBytes[Constants.HEADER_OFFSET] == ChatMagicNumbers.PUBLIC_KEY,messageBytes,this);
 		/*Validate the Checksum over the Public Key*/
-		hash.hash(messageBytes, HashModes.validate_Hash);
+		hash.hash(messageBytes, HashModes.VALIDATE_HASH);
 		/*Extract the Public Key*/
 		return Arrays.copyOfRange(messageBytes, Constants.MESSAGE_OFFSET, messageBytes.length);
 	}
 	byte[] setUpCrypto(SecretKeySpec AES_Key) throws InvalidKeyException, IOException {
 		try {
-			Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+			Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 			cipher.init(Cipher.ENCRYPT_MODE, AES_Key);
+			//cipher.doFinal(Constants.TEST_STRING.getBytes(StandardCharsets.UTF_8));
 			return cipher.getParameters().getEncoded();
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
 			/*This should never happen*/
 			throw new AssertionError();
+		}
+	}
+	void checkEncryption(boolean opened) {
+		if(opened) {
+			byte[] message = new byte[Constants.HEADER_SIZE+Constants.CHECKSUM_SIZE+((Constants.TEST_STRING.length()/16 + 1) * 16)];
+			message[Constants.HEADER_OFFSET] = ChatMagicNumbers.ENC_TEST_STRING;
+			byte[] sha = hash.hash(Constants.TEST_STRING.getBytes(StandardCharsets.UTF_8), HashModes.CREATE_HASH);
+			System.arraycopy(sha, 0, message, Constants.CHECKSUM_OFFSET, sha.length);
+			System.arraycopy(Constants.TEST_STRING.getBytes(StandardCharsets.UTF_8), 0,
+					message, Constants.MESSAGE_OFFSET, Constants.TEST_STRING.length());
+			byte[] enc_message = crypto.cryptoOperation(Arrays.copyOfRange(message, Constants.CHECKSUM_OFFSET, message.length), CryptoModes.ENCRYPT);
+			System.arraycopy(enc_message, 0, message, Constants.CHECKSUM_OFFSET, enc_message.length);
+			out.println(new String(Base64.getEncoder().encode(message),StandardCharsets.UTF_8));
+			byte recieved = extractHeader();
+			if(recieved != ChatMagicNumbers.ENC_SUCCESS) {
+				Log.log(new String[] {
+						socket.getInetAddress().getHostAddress()+"/"+socket.getPort()
+				}, LogType.TEST_STING_DECRYPTION_FAILED);
+				throw new ConnectionError(message, this);
+			}
+		} else {
+			while(sc.hasNextLine());
+			byte[] message = Base64.getDecoder().decode(sc.nextLine().getBytes(StandardCharsets.UTF_8));
+			Panic.R_UNLESS(message[Constants.HEADER_OFFSET] == ChatMagicNumbers.ENC_TEST_STRING, message, this);
+			System.arraycopy(
+					crypto.cryptoOperation(
+							Arrays.copyOfRange(message, Constants.CHECKSUM_OFFSET, message.length),
+							CryptoModes.DECRYPT),
+					0, message,Constants.HEADER_OFFSET,message.length-Constants.HEADER_SIZE);
+			hash.hash(message, HashModes.VALIDATE_HASH);
+			if(Arrays.equals(
+					Arrays.copyOfRange(message, Constants.MESSAGE_OFFSET, message.length-Constants.HEADER_SIZE-Constants.CHECKSUM_SIZE),
+					Constants.TEST_STRING.getBytes(StandardCharsets.UTF_8))) {
+				sendHeader(ChatMagicNumbers.ENC_SUCCESS);
+			}else{
+				sendHeader(ChatMagicNumbers.ENC_ERROR);
+				Log.log(new String[] {
+					socket.getInetAddress().getHostAddress()+"/"+socket.getPort()
+				} , LogType.TEST_STING_DECRYPTION_FAILED);
+				throw new ConnectionError(message, this);
+			}
 		}
 	}
 	public Socket getSocket() {
@@ -353,6 +411,13 @@ public class Connection {
 	}
 	/*Returns the name of the other ChatClient*/
 	public String getName() {
-		return this.name;
+		return this.otherName;
+	}
+	@Override
+	/*Returns a String containing the other ChatClients name with his ip address and port*/
+	public String toString() {
+		return "Connection: "+otherName+" to ip: "+
+				socket.getInetAddress().getHostAddress()+":"+
+				socket.getLocalPort();
 	}
 }	

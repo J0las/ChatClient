@@ -37,7 +37,7 @@ public class Crypto {
 		this.AES_Key = AES_Key;
 		this.encodedAES_Params = Arrays.copyOf(encodedAES_Params, encodedAES_Params.length);
 		try {
-			this.cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+			this.cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
 			/*This should never happen*/
 			throw new AssertionError();
