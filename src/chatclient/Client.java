@@ -35,6 +35,7 @@ class Client {
 	void run() throws ConnectionError{
 		newConnection();
 		Connection[] c = Connections.modifyConnections(ArrayModifications.GET_CURRENT_CONNECTIONS, null);
+		System.out.println(c[0].hasNewMessage());
 				c[0].sendMessage("Lol");
 		System.out.println(Arrays.toString(c));
 		System.out.println("K");
@@ -45,11 +46,14 @@ class Client {
 		c[0].sendMessage("Go");
 		printNewMessages(c[0]);
 		printNewMessages(c[1]);
+		printNewMessages(c[0]);
 	}
 	private void printNewMessages(Connection con) throws ConnectionError {
 		if(con.isClosed()) Connections.modifyConnections(ArrayModifications.REMOVE_CONNECTION,con);
 		while(con.hasNewMessage()) {
+			System.out.println("1");
 			System.out.println(con.getOtherName()+"	"+con.getNewMessage());
+			System.out.println("2");
 		}
 		System.out.println("Escaped");
 	}

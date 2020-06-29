@@ -48,7 +48,9 @@
 package chatclient;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
+import java.io.PushbackInputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
@@ -87,6 +89,7 @@ public class Connection{
 	private Socket 		socket;
 	/*printstream for easy output*/
 	private PrintStream out;
+	private PushbackInputStream in;
 	/*Name of the other ChatCLient*/
 	private String 		otherName	= "";
 	/*Name of this
@@ -109,7 +112,8 @@ public class Connection{
 			/*Create a printstream for easy output*/
 			this.out = new PrintStream(socket.getOutputStream(),true,StandardCharsets.UTF_8);
 			/*Create an scanner for easy input*/
-			sc = new Scanner(socket.getInputStream(),StandardCharsets.UTF_8);
+			this.in = new PushbackInputStream(socket.getInputStream());
+			sc = new Scanner(this.in, StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -147,7 +151,17 @@ public class Connection{
 	}
 	/*Return true if there is a new Message*/
 	boolean hasNewMessage(){
-		return sc.hasNextLine();
+		try {
+			int i = this.in.available();
+			if(i == 0) {
+				return false;
+			} else {
+				return true;
+			}
+		} catch (IOException e) {
+			return false;
+		}
+		
 	}
 	/*Returns the content of the next Message*/
 	String getNewMessage() throws ConnectionError{
