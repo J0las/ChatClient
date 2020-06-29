@@ -52,7 +52,6 @@ public class Crypto {
 										params.init(encodedAES_Params);
 					cipher.init(Cipher.ENCRYPT_MODE, AES_Key, params);
 				/*Performs the AES encryption on the given data*/
-					System.out.println("a"+data.length);
 				return cipher.doFinal(Arrays.copyOfRange(data, Constants.CHECKSUM_OFFSET, data.length));
 				
 			} catch (IllegalBlockSizeException | BadPaddingException | InvalidKeyException |
@@ -71,9 +70,7 @@ public class Crypto {
 									params.init(encodedAES_Params);
 				cipher.init(Cipher.DECRYPT_MODE, AES_Key,params);
 				/*Performes the AES decryption on the given data*/
-				System.out.println("k"+Arrays.toString(Arrays.copyOfRange(data, Constants.CHECKSUM_OFFSET, data.length)));
 				data = cipher.doFinal(Arrays.copyOfRange(data, Constants.CHECKSUM_OFFSET, data.length));
-				System.out.println("v"+Arrays.toString(data));
 				return data;
 			} catch (IllegalBlockSizeException | BadPaddingException | InvalidKeyException |
 					 IOException e) {

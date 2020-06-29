@@ -128,11 +128,8 @@ public class Connection{
 			sendHeader(ChatMagicNumbers.ACCEPTED_CONNECTION);
 			/*Receives the name of the other ChatClient*/
 		}
-		System.out.println(ownName+" exchanging keys");
 		keyExchange(openedConnection);
-		System.out.println(ownName+" checking keys");
 		checkEncryption(openedConnection);
-		System.out.println(ownName+" checking keys finished");
 		if(openedConnection) {
 			sendName();
 			/*Receives the name of the other ChatClient*/
@@ -210,10 +207,14 @@ public class Connection{
 		Panic.R_UNLESS(rawMessage[Constants.HEADER_OFFSET] == ChatMagicNumbers.CONNECTION_NAME,rawMessage, this);
 		/*Decrypt the Message*/
 		byte[] dec = crypto.cryptoOperation(rawMessage, CryptoModes.DECRYPT);
+		/*Allocate a new buffer to retain message format*/
+		byte[] toHash = new byte[Constants.HEADER_SIZE+dec.length];
+		/*Store the decrypted hash and message into the new buffer*/
+		System.arraycopy(dec, 0, toHash, Constants.CHECKSUM_OFFSET, dec.length);
 		/*Validate the hash*/
-		hash.hash(dec, HashModes.VALIDATE_HASH);
+		hash.hash(toHash, HashModes.VALIDATE_HASH);
 		/*Store the name of the other chatclient*/
-		this.otherName = new String(Arrays.copyOfRange(dec, Constants.MESSAGE_OFFSET, dec.length),StandardCharsets.UTF_8);
+		this.otherName = new String(Arrays.copyOfRange(toHash, Constants.MESSAGE_OFFSET, toHash.length),StandardCharsets.UTF_8);
 	}
 	/*Returns true if the connection was closed*/
 	boolean isClosed() {
@@ -367,7 +368,6 @@ public class Connection{
 			byte[] toEnc = new byte[Constants.HEADER_SIZE+Constants.CHECKSUM_SIZE+Constants.TEST_BYTES.length];
 			System.arraycopy(hash.hash(Constants.TEST_BYTES, HashModes.CREATE_HASH), 0, toEnc, Constants.CHECKSUM_OFFSET, Constants.CHECKSUM_SIZE);
 			System.arraycopy(Constants.TEST_BYTES, 0, toEnc, Constants.MESSAGE_OFFSET, Constants.TEST_BYTES.length);
-			System.out.println("0"+Arrays.toString(toEnc));
 			byte[] encMessage = crypto.cryptoOperation(toEnc, CryptoModes.ENCRYPT);
 			byte[] message = new byte[Constants.HEADER_SIZE+encMessage.length];
 			message[Constants.HEADER_OFFSET] = ChatMagicNumbers.ENC_TEST_STRING;
@@ -383,15 +383,12 @@ public class Connection{
 		} else {
 			while(!sc.hasNextLine());
 			byte[] message = Base64.getDecoder().decode(sc.nextLine().getBytes(StandardCharsets.UTF_8));
-			System.out.println("a"+Arrays.toString(message));
 			Panic.R_UNLESS(message[Constants.HEADER_OFFSET] == ChatMagicNumbers.ENC_TEST_STRING, message, this);
 			byte[] decMessage = crypto.cryptoOperation(
 					message,CryptoModes.DECRYPT);
-			System.out.println("b"+Arrays.toString(decMessage));
 			byte[] toHash = new byte[decMessage.length+Constants.HEADER_SIZE];
 			Arrays.fill(toHash, (byte)(0));
 			System.arraycopy(decMessage, 0, toHash, Constants.CHECKSUM_OFFSET, decMessage.length);
-			System.out.println("c"+Arrays.toString(toHash));
 			hash.hash(toHash, HashModes.VALIDATE_HASH);
 			if(Arrays.equals(
 					Arrays.copyOfRange(toHash, Constants.MESSAGE_OFFSET, toHash.length),
