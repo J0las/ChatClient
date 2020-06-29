@@ -16,15 +16,17 @@
 
 package chatclient.lib;
 
+import java.nio.charset.StandardCharsets;
+
 public class Constants {
-	public static final String APP_ID 			= "ChatClient";
-	public static final String TEST_STRING 	= "Success!";
+	public static final byte[] 	TEST_BYTES 		= "Success!".getBytes(StandardCharsets.UTF_8);
+	public static final byte[]	DUMMY_AES_KEY	= {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
 	public static final int 	STANDARD_PORT 	= 53545;
-	public static final int	HEADER_OFFSET	= 0;
-	public static final int	HEADER_SIZE		= 1;
-	public static final int	DH_KEY_SIZE		= 4096;
-	public static final int	CHECKSUM_OFFSET	= HEADER_OFFSET + HEADER_SIZE;
-	public static final int	CHECKSUM_SIZE	= 32; //256Bit
-	public static final int	MESSAGE_OFFSET	= CHECKSUM_OFFSET + CHECKSUM_SIZE;
-	public static final int	AES_KEY_LENGTH	= 32; //256Bit
+	public static final int		HEADER_OFFSET	= 0;
+	public static final int		HEADER_SIZE		= 1;
+	public static final int		DH_KEY_SIZE		= 4096;
+	public static final int		CHECKSUM_OFFSET	= HEADER_OFFSET + HEADER_SIZE;
+	public static final int		CHECKSUM_SIZE	= 32; //256Bit
+	public static final int		MESSAGE_OFFSET	= CHECKSUM_OFFSET + CHECKSUM_SIZE;
+	public static final int		AES_KEY_LENGTH	= 32; //256Bit
 }

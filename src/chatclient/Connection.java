@@ -179,27 +179,41 @@ public class Connection{
 	}
 	/*Sends the name of this ChatClient to the other ChatClient*/
 	private void sendName() throws ConnectionError {
-		byte[] nameBytes = ownName.getBytes(StandardCharsets.UTF_8);
-		byte[] sha = hash.hash(nameBytes, HashModes.CREATE_HASH);
-		byte[] shaMessage = new byte[Constants.CHECKSUM_SIZE+nameBytes.length];
-		System.arraycopy(sha, 0, shaMessage, 0, sha.length);
-		System.arraycopy(nameBytes, 0, shaMessage, Constants.MESSAGE_OFFSET-1, nameBytes.length);
-		shaMessage = crypto.cryptoOperation(shaMessage, CryptoModes.ENCRYPT);
-		byte[] completeMessage = new byte[Constants.HEADER_SIZE+shaMessage.length];
-		completeMessage[Constants.HEADER_OFFSET] = ChatMagicNumbers.CONNECTION_NAME;
-		System.arraycopy(shaMessage, 0, completeMessage, Constants.CHECKSUM_OFFSET, shaMessage.length);
-		out.println(new String(Base64.getEncoder().encode(shaMessage),StandardCharsets.UTF_8));
+		byte[] nameBytes = this.ownName.getBytes(StandardCharsets.UTF_8);
+		/*Allocate a buffer for the hash and name to be encrypted*/
+		byte[] toEnc = new byte[Constants.HEADER_SIZE+Constants.CHECKSUM_SIZE+nameBytes.length];
+		/*Copy the hash into the buffer*/
+		System.arraycopy(
+				hash.hash(
+						nameBytes,HashModes.CREATE_HASH),
+				0, toEnc, Constants.CHECKSUM_OFFSET, Constants.CHECKSUM_SIZE);
+		/*Copy the name in UTF-8 encoding into the buffer*/
+		System.arraycopy(nameBytes, 0, toEnc, Constants.MESSAGE_OFFSET, nameBytes.length);
+		/*Encrypt the buffer except for the first placeholder byte*/
+		byte[] enc = crypto.cryptoOperation(toEnc, CryptoModes.ENCRYPT);
+		/*Allocate a buffer for the complete message*/
+		byte[] message = new byte[Constants.HEADER_SIZE+enc.length];
+		/*Setting the headerbyte*/
+		message[Constants.HEADER_OFFSET] = ChatMagicNumbers.CONNECTION_NAME;
+		/*Copy the encrypted hash and name into the buffer*/
+		System.arraycopy(enc, 0, message, Constants.CHECKSUM_OFFSET, enc.length);
+		/*Send the name as a Base64 encoded String*/
+		out.println(new String(Base64.getEncoder().encode(message),StandardCharsets.UTF_8));
 	}
-	/*Recieves the name of the other ChatClient and stores it in name*/
+	/*Recieves the name of the other ChatClient and stores it in otherName*/
 	private void recieveName() throws ConnectionError{
+		/*Wait for the next message*/
 		while(!sc.hasNextLine());
-		byte[] rawMessage = Base64.getDecoder().decode(sc.nextLine().getBytes(StandardCharsets.UTF_8));
-		Panic.R_UNLESS(rawMessage[Constants.HEADER_OFFSET] == ChatMagicNumbers.CONNECTION_NAME, rawMessage, this);
-		byte[] decData = crypto.cryptoOperation(rawMessage, CryptoModes.DECRYPT);
-		byte[] forHash = new byte[decData.length+Constants.HEADER_SIZE];
-		System.arraycopy(decData, 0, forHash, Constants.CHECKSUM_OFFSET, decData.length);
-		hash.hash(forHash, HashModes.VALIDATE_HASH);
-		this.otherName = new String(Arrays.copyOfRange(forHash, Constants.MESSAGE_OFFSET, forHash.length),StandardCharsets.UTF_8);
+		/*Decode the incoming message from Base64 to raw bytes*/
+		byte[] rawMessage =Base64.getDecoder().decode(sc.nextLine().getBytes(StandardCharsets.UTF_8));
+		/*Check if the headerbyte is valid*/
+		Panic.R_UNLESS(rawMessage[Constants.HEADER_OFFSET] == ChatMagicNumbers.CONNECTION_NAME,rawMessage, this);
+		/*Decrypt the Message*/
+		byte[] dec = crypto.cryptoOperation(rawMessage, CryptoModes.DECRYPT);
+		/*Validate the hash*/
+		hash.hash(dec, HashModes.VALIDATE_HASH);
+		/*Store the name of the other chatclient*/
+		this.otherName = new String(Arrays.copyOfRange(dec, Constants.MESSAGE_OFFSET, dec.length),StandardCharsets.UTF_8);
 	}
 	/*Returns true if the connection was closed*/
 	boolean isClosed() {
@@ -350,17 +364,15 @@ public class Connection{
 	}
 	void checkEncryption(boolean opened) {
 		if(opened) {
-			byte[] message = new byte[Constants.HEADER_SIZE+Constants.CHECKSUM_SIZE+((Constants.TEST_STRING.length()/16 + 1) * 16)];
+			byte[] toEnc = new byte[Constants.HEADER_SIZE+Constants.CHECKSUM_SIZE+Constants.TEST_BYTES.length];
+			System.arraycopy(hash.hash(Constants.TEST_BYTES, HashModes.CREATE_HASH), 0, toEnc, Constants.CHECKSUM_OFFSET, Constants.CHECKSUM_SIZE);
+			System.arraycopy(Constants.TEST_BYTES, 0, toEnc, Constants.MESSAGE_OFFSET, Constants.TEST_BYTES.length);
+			System.out.println("0"+Arrays.toString(toEnc));
+			byte[] encMessage = crypto.cryptoOperation(toEnc, CryptoModes.ENCRYPT);
+			byte[] message = new byte[Constants.HEADER_SIZE+encMessage.length];
 			message[Constants.HEADER_OFFSET] = ChatMagicNumbers.ENC_TEST_STRING;
-			byte[] sha = hash.hash(Constants.TEST_STRING.getBytes(StandardCharsets.UTF_8), HashModes.CREATE_HASH);
-			System.arraycopy(sha, 0, message, Constants.CHECKSUM_OFFSET, sha.length);
-			System.arraycopy(Constants.TEST_STRING.getBytes(StandardCharsets.UTF_8), 0,
-					message, Constants.MESSAGE_OFFSET, Constants.TEST_STRING.length());
-			byte[] enc_message = crypto.cryptoOperation(Arrays.copyOfRange(message, Constants.CHECKSUM_OFFSET, message.length), CryptoModes.ENCRYPT);
-			System.arraycopy(enc_message, 0, message, Constants.CHECKSUM_OFFSET, enc_message.length);
-			System.out.println("Sending test string");
+			System.arraycopy(encMessage, 0, message, Constants.CHECKSUM_OFFSET, encMessage.length);
 			out.println(new String(Base64.getEncoder().encode(message),StandardCharsets.UTF_8));
-			System.out.println("done");
 			byte recieved = extractHeader();
 			if(recieved != ChatMagicNumbers.ENC_SUCCESS) {
 				Log.log(new String[] {
@@ -371,15 +383,19 @@ public class Connection{
 		} else {
 			while(!sc.hasNextLine());
 			byte[] message = Base64.getDecoder().decode(sc.nextLine().getBytes(StandardCharsets.UTF_8));
+			System.out.println("a"+Arrays.toString(message));
 			Panic.R_UNLESS(message[Constants.HEADER_OFFSET] == ChatMagicNumbers.ENC_TEST_STRING, message, this);
 			byte[] decMessage = crypto.cryptoOperation(
 					message,CryptoModes.DECRYPT);
+			System.out.println("b"+Arrays.toString(decMessage));
 			byte[] toHash = new byte[decMessage.length+Constants.HEADER_SIZE];
-			System.arraycopy(decMessage, 0, toHash, Constants.HEADER_OFFSET, decMessage.length);
-			hash.hash(message, HashModes.VALIDATE_HASH);
+			Arrays.fill(toHash, (byte)(0));
+			System.arraycopy(decMessage, 0, toHash, Constants.CHECKSUM_OFFSET, decMessage.length);
+			System.out.println("c"+Arrays.toString(toHash));
+			hash.hash(toHash, HashModes.VALIDATE_HASH);
 			if(Arrays.equals(
-					Arrays.copyOfRange(message, Constants.MESSAGE_OFFSET, message.length-Constants.HEADER_SIZE-Constants.CHECKSUM_SIZE),
-					Constants.TEST_STRING.getBytes(StandardCharsets.UTF_8))) {
+					Arrays.copyOfRange(toHash, Constants.MESSAGE_OFFSET, toHash.length),
+					Constants.TEST_BYTES)) {
 				sendHeader(ChatMagicNumbers.ENC_SUCCESS);
 			}else{
 				sendHeader(ChatMagicNumbers.ENC_ERROR);

@@ -52,14 +52,17 @@ public class Crypto {
 										params.init(encodedAES_Params);
 					cipher.init(Cipher.ENCRYPT_MODE, AES_Key, params);
 				/*Performs the AES encryption on the given data*/
-				return cipher.doFinal(data, Constants.CHECKSUM_OFFSET,
-												data.length-Constants.HEADER_SIZE);
+					System.out.println("a"+data.length);
+				return cipher.doFinal(Arrays.copyOfRange(data, Constants.CHECKSUM_OFFSET, data.length));
 				
 			} catch (IllegalBlockSizeException | BadPaddingException | InvalidKeyException |
-						IOException | InvalidAlgorithmParameterException | NoSuchAlgorithmException e) {
+						IOException e) {
 				/*This should never happen*/
 				e.printStackTrace();
 			}
+		 catch (InvalidAlgorithmParameterException | NoSuchAlgorithmException e) {
+			throw new AssertionError();
+		}
 		/*Case for Decrypting the input data*/
 		case DECRYPT:
 			try {
@@ -68,8 +71,10 @@ public class Crypto {
 									params.init(encodedAES_Params);
 				cipher.init(Cipher.DECRYPT_MODE, AES_Key,params);
 				/*Performes the AES decryption on the given data*/
-				return cipher.doFinal(data, Constants.CHECKSUM_OFFSET,
-												data.length-Constants.HEADER_SIZE);
+				System.out.println("k"+Arrays.toString(Arrays.copyOfRange(data, Constants.CHECKSUM_OFFSET, data.length)));
+				data = cipher.doFinal(Arrays.copyOfRange(data, Constants.CHECKSUM_OFFSET, data.length));
+				System.out.println("v"+Arrays.toString(data));
+				return data;
 			} catch (IllegalBlockSizeException | BadPaddingException | InvalidKeyException |
 					 IOException e) {
 				e.printStackTrace();
