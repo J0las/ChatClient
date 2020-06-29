@@ -140,7 +140,6 @@ public class Connection{
 			/*Sends his own Name to the other ChatCllient*/
 			sendName();
 		}
-		System.out.println(ownName+" finished");
 		Log.log(new String[] {
 				getIP_PORT(),
 				otherName
@@ -152,27 +151,61 @@ public class Connection{
 	}
 	/*Returns the content of the next Message*/
 	String getNewMessage() throws ConnectionError{
+		/*Panics if there is no new Message*/
 		Panic.R_UNLESS(sc.hasNextLine(), "No new message".getBytes(), this);
+		/*Decode the message from Base64 to raw bytes*/
 		byte[] rawMessage = Base64.getDecoder().decode(sc.nextLine().getBytes(StandardCharsets.UTF_8));
+		/*Validates the header*/
 		Panic.R_UNLESS(rawMessage[Constants.HEADER_OFFSET] == ChatMagicNumbers.ENC_MESSAGE, rawMessage, this);
+		/*Decrypts the data*/
 		byte[] decData = crypto.cryptoOperation(rawMessage, CryptoModes.DECRYPT);
+		/*Allocates a new buffer to retain message format*/
 		byte[] forHash = new byte[decData.length+Constants.HEADER_SIZE];
+		/*Copies the decrypted hash and message into the new buffer*/
 		System.arraycopy(decData, 0, forHash, Constants.CHECKSUM_OFFSET, decData.length);
+		/*Validates the hash*/
 		hash.hash(forHash, HashModes.VALIDATE_HASH);
-		return new String(Arrays.copyOfRange(forHash, Constants.MESSAGE_OFFSET, forHash.length),StandardCharsets.UTF_8);
+		/*Extracts the message*/
+		String message =  new String(
+								Arrays.copyOfRange(forHash, Constants.MESSAGE_OFFSET, forHash.length),
+								StandardCharsets.UTF_8);
+		/*Logs the new message*/
+		Log.log(new String[] {
+			getIP_PORT(),
+			this.otherName,
+			message	
+		}, LogType.MESSAGE_RECIEVED);
+		/*Returns the message*/
+		return message;
 	}
 	/*Send a message to the other ChatCLient*/
 	void sendMessage(String message) {
+		/*Allocates a buffer for the UTF-8 representation of the message*/
 		byte[] messageBytes = message.getBytes(StandardCharsets.UTF_8);
+		/*Calculates the hash and stores it inside a new buffer*/
 		byte[] sha = hash.hash(messageBytes, HashModes.CREATE_HASH);
-		byte[] shaMessage = new byte[Constants.CHECKSUM_SIZE+messageBytes.length];
-		System.arraycopy(sha, 0, shaMessage, 0, sha.length);
-		System.arraycopy(messageBytes, 0, shaMessage, Constants.MESSAGE_OFFSET-1, messageBytes.length);
+		/*Allocates a buffer the hash and message for encryption*/
+		byte[] shaMessage = new byte[Constants.HEADER_SIZE+Constants.CHECKSUM_SIZE+messageBytes.length];
+		/*Copies the hash into the buffer*/
+		System.arraycopy(sha, 0, shaMessage, Constants.CHECKSUM_OFFSET, sha.length);
+		/*Copies the message into the buffer*/
+		System.arraycopy(messageBytes, 0, shaMessage, Constants.MESSAGE_OFFSET, messageBytes.length);
+		/*Encrypts the hash and message*/
 		shaMessage = crypto.cryptoOperation(shaMessage, CryptoModes.ENCRYPT);
+		/*Allocates a new buffer to retain message format*/
 		byte[] completeMessage = new byte[Constants.HEADER_SIZE+shaMessage.length];
+		/*Sets the headerbyte*/
 		completeMessage[Constants.HEADER_OFFSET] = ChatMagicNumbers.ENC_MESSAGE;
+		/*Copies the encrypted hash and message into the buffer*/
 		System.arraycopy(shaMessage, 0, completeMessage, Constants.CHECKSUM_OFFSET, shaMessage.length);
-		out.println(new String(Base64.getEncoder().encode(shaMessage),StandardCharsets.UTF_8));
+		/*sends out the crafted message as a Base64 encoded String*/
+		out.println(new String(Base64.getEncoder().encode(completeMessage),StandardCharsets.UTF_8));
+		/*Logs the message*/
+		Log.log(new String[] {
+			getIP_PORT(),
+			this.otherName,
+			message
+		}, LogType.MESSAGE_SEND);
 	}
 	/*Sends the name of this ChatClient to the other ChatClient*/
 	private void sendName() throws ConnectionError {
@@ -324,7 +357,7 @@ public class Connection{
 		return Arrays.copyOfRange(message, Constants.MESSAGE_OFFSET, message.length);
 	}
 	/*Sends the PublicKey of this ChatClient to the other ChatClient*/
-	void sendPubKey(KeyPair keyPair) throws ConnectionError {
+	private void sendPubKey(KeyPair keyPair) throws ConnectionError {
 		/*Gets the encoded PublicKey*/
 		byte[] 	pubKeyBytes 	= keyPair.getPublic().getEncoded();
 		/*Creates a buffer for the message*/

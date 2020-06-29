@@ -34,21 +34,24 @@ class Client {
 	}
 	void run() throws ConnectionError{
 		newConnection();
-		Connections.modifyConnections(ArrayModifications.GET_CURRENT_CONNECTIONS, null)[0].sendMessage("Lol");
-		System.out.println(Arrays.toString(Connections.modifyConnections(ArrayModifications.GET_CURRENT_CONNECTIONS, null)));
-		while(true) {
-			Connection[] cons =
-					Connections.modifyConnections(ArrayModifications.GET_CURRENT_CONNECTIONS,null);
-			for(Connection con : cons) {
-				printNewMessages(con);
-			}
-		}
+		Connection[] c = Connections.modifyConnections(ArrayModifications.GET_CURRENT_CONNECTIONS, null);
+				c[0].sendMessage("Lol");
+		System.out.println(Arrays.toString(c));
+		System.out.println("K");
+		printNewMessages(c[1]);
+		System.out.println("aha");
+		c[1].sendMessage("Test1");
+		c[1].sendMessage("Test2");
+		c[0].sendMessage("Go");
+		printNewMessages(c[0]);
+		printNewMessages(c[1]);
 	}
 	private void printNewMessages(Connection con) throws ConnectionError {
 		if(con.isClosed()) Connections.modifyConnections(ArrayModifications.REMOVE_CONNECTION,con);
 		while(con.hasNewMessage()) {
 			System.out.println(con.getOtherName()+"	"+con.getNewMessage());
 		}
+		System.out.println("Escaped");
 	}
 	void newConnection() throws ConnectionError{
 		/*Buffer for the raw ip*/

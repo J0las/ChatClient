@@ -24,19 +24,15 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.Base64;
-
-import chatclient.lib.ChatMagicNumbers;
 
 public class Log {
 	private static boolean setUp = false;
 	private static final int IP_PORT = 0;
 	private static final int OTHER_NAME = 1;
 	private static final int OWN_NAME = 2;
+	private static final int MESSAGE_CONTENTS = 2;
 	private static final int AES_KEY_HASH = 3;
-	private static final int BASE64_MESSAGE = 2;
-	private static final int RAW_MESSAGE = 2;
 	
 	public static void init (boolean enabled){
 		if(enabled) {
@@ -110,12 +106,8 @@ public class Log {
 			sb.append(args[IP_PORT]);
 			sb.append(" / ");
 			sb.append(args[OTHER_NAME]);
-			sb.append(" Base64: ");
-			sb.append(args[BASE64_MESSAGE]);
-			sb.append(" / ");
-			sb.append(Arrays.toString(Base64.getDecoder().decode(
-					args[BASE64_MESSAGE].getBytes(StandardCharsets.UTF_8))));
-			sb.append(" Expected header: "+ChatMagicNumbers.ENC_MESSAGE);
+			sb.append(": ");
+			sb.append(args[MESSAGE_CONTENTS]);
 			break;
 		case MESSAGE_SEND:
 			if(args.length != 3) throw new IllegalArgumentException();
@@ -124,7 +116,7 @@ public class Log {
 			sb.append(" / ");
 			sb.append(args[OTHER_NAME]);
 			sb.append(" content: ");
-			sb.append(args[RAW_MESSAGE]);
+			sb.append(args[MESSAGE_CONTENTS]);
 			break;
 		case TEST_STING_DECRYPTION_FAILED:
 			if(args.length != 1) throw new IllegalArgumentException();
