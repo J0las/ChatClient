@@ -48,9 +48,6 @@ class Server extends Thread {
 			try {
 				/*Logs the incoming connection*/
 				Socket s = server.accept();
-				Log.log(new String[] {
-					s.getInetAddress().getHostAddress()+"/"+s.getLocalPort()},
-				LogType.INCOMMING_CONNECTION);
 				Connection con = new Connection(s,name,false);
 				con.start();
 				/*Adds the new connection in accepting configuration to the shared ArrayList*/

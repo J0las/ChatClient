@@ -80,7 +80,6 @@ import chatclient.lib.Crypto;
 import chatclient.lib.CryptoModes;
 import chatclient.lib.Hash;
 import chatclient.lib.HashModes;
-import chatclient.lib.Panic;
 import chatclient.lib.QueueModes;
 import chatclient.log.Log;
 import chatclient.log.LogType;
@@ -110,6 +109,15 @@ public class Connection extends Thread{
 		this.socket=socket;
 		this.ownName = ownName;
 		this.input = new LinkedList<String>();
+		if(openedConnection)  {
+			Log.log(new String[] {
+						getIP_PORT()},
+				LogType.INCOMMING_CONNECTION);
+		} else {
+			Log.log(new String[] {
+					getIP_PORT()},
+				LogType.CREATED_NEW_CONNECTION);
+		}
 		try {
 			/*Create a printstream for easy output*/
 			this.out = new PrintStream(socket.getOutputStream(),true,StandardCharsets.UTF_8);
@@ -180,7 +188,8 @@ public class Connection extends Thread{
 		/*Decode the message from Base64 to raw bytes*/
 		byte[] rawMessage = Base64.getDecoder().decode(stringMessage.getBytes(StandardCharsets.UTF_8));
 		/*Validates the header*/
-		Panic.R_UNLESS(rawMessage[Constants.HEADER_OFFSET] == ChatMagicNumbers.ENC_MESSAGE, rawMessage, this);
+		if(rawMessage[Constants.HEADER_OFFSET] != ChatMagicNumbers.ENC_MESSAGE) 
+			throw new ConnectionError(rawMessage[Constants.HEADER_OFFSET], ChatMagicNumbers.ENC_MESSAGE, this);
 		/*Decrypts the data*/
 		byte[] decData = crypto.cryptoOperation(rawMessage, CryptoModes.DECRYPT);
 		/*Allocates a new buffer to retain message format*/
@@ -261,7 +270,8 @@ public class Connection extends Thread{
 		/*Decode the incoming message from Base64 to raw bytes*/
 		byte[] rawMessage =Base64.getDecoder().decode(sc.nextLine().getBytes(StandardCharsets.UTF_8));
 		/*Check if the headerbyte is valid*/
-		Panic.R_UNLESS(rawMessage[Constants.HEADER_OFFSET] == ChatMagicNumbers.CONNECTION_NAME,rawMessage, this);
+		if(rawMessage[Constants.HEADER_OFFSET] != ChatMagicNumbers.CONNECTION_NAME) 
+			throw new ConnectionError(rawMessage[Constants.HEADER_OFFSET], ChatMagicNumbers.CONNECTION_NAME, this);
 		/*Decrypt the Message*/
 		byte[] dec = crypto.cryptoOperation(rawMessage, CryptoModes.DECRYPT);
 		/*Allocate a new buffer to retain message format*/
@@ -306,7 +316,8 @@ public class Connection extends Thread{
 		while(!sc.hasNextLine());
 		/*Check if the response contains the expected value*/
 		byte[] response = Base64.getDecoder().decode(sc.nextLine());
-		Panic.R_UNLESS(response[Constants.HEADER_OFFSET] == header,response,this);
+		if(response[Constants.HEADER_OFFSET] != header) 
+			throw new ConnectionError(response[Constants.HEADER_OFFSET], header, this);
 	}
 	private byte extractHeader() {
 		/*Wait for the response*/
@@ -375,10 +386,11 @@ public class Connection extends Thread{
 	}
 	private byte[] recieveEncodedParams() throws ConnectionError {
 		while(!sc.hasNextLine());
-		byte[] message = Base64.getDecoder().decode(sc.nextLine().getBytes(StandardCharsets.UTF_8));
-		Panic.R_UNLESS(message[Constants.HEADER_OFFSET]==ChatMagicNumbers.ENCODED_PARAMS, message, this);
-		hash.hash(message, HashModes.VALIDATE_HASH);
-		return Arrays.copyOfRange(message, Constants.MESSAGE_OFFSET, message.length);
+		byte[] rawMessage = Base64.getDecoder().decode(sc.nextLine().getBytes(StandardCharsets.UTF_8));
+		if(rawMessage[Constants.HEADER_OFFSET] != ChatMagicNumbers.ENCODED_PARAMS) 
+			throw new ConnectionError(rawMessage[Constants.HEADER_OFFSET], ChatMagicNumbers.ENCODED_PARAMS, this);
+		hash.hash(rawMessage, HashModes.VALIDATE_HASH);
+		return Arrays.copyOfRange(rawMessage, Constants.MESSAGE_OFFSET, rawMessage.length);
 	}
 	/*Sends the PublicKey of this ChatClient to the other ChatClient*/
 	private void sendPubKey(KeyPair keyPair) throws ConnectionError {
@@ -401,13 +413,14 @@ public class Connection extends Thread{
 		/*Wait for the incoming message*/
 		while(!sc.hasNextLine());
 		/*Decode the Base64 message*/
-		byte[] messageBytes = Base64.getDecoder().decode(sc.nextLine().getBytes(StandardCharsets.UTF_8));
+		byte[] rawMessage = Base64.getDecoder().decode(sc.nextLine().getBytes(StandardCharsets.UTF_8));
 		/*Validate the Header*/
-		Panic.R_UNLESS(messageBytes[Constants.HEADER_OFFSET] == ChatMagicNumbers.PUBLIC_KEY,messageBytes,this);
+		if(rawMessage[Constants.HEADER_OFFSET] != ChatMagicNumbers.PUBLIC_KEY) 
+			throw new ConnectionError(rawMessage[Constants.HEADER_OFFSET], ChatMagicNumbers.PUBLIC_KEY, this);
 		/*Validate the Checksum over the Public Key*/
-		hash.hash(messageBytes, HashModes.VALIDATE_HASH);
+		hash.hash(rawMessage, HashModes.VALIDATE_HASH);
 		/*Extract the Public Key*/
-		return Arrays.copyOfRange(messageBytes, Constants.MESSAGE_OFFSET, messageBytes.length);
+		return Arrays.copyOfRange(rawMessage, Constants.MESSAGE_OFFSET, rawMessage.length);
 	}
 	byte[] setUpCrypto(SecretKeySpec AES_Key) throws InvalidKeyException, IOException {
 		try {
@@ -430,19 +443,15 @@ public class Connection extends Thread{
 			message[Constants.HEADER_OFFSET] = ChatMagicNumbers.ENC_TEST_STRING;
 			System.arraycopy(encMessage, 0, message, Constants.CHECKSUM_OFFSET, encMessage.length);
 			out.println(new String(Base64.getEncoder().encode(message),StandardCharsets.UTF_8));
-			byte recieved = extractHeader();
-			if(recieved != ChatMagicNumbers.ENC_SUCCESS) {
-				Log.log(new String[] {
-						getIP_PORT()
-				}, LogType.TEST_STING_DECRYPTION_FAILED);
-				throw new ConnectionError(message, this);
-			}
+			checkHeader(ChatMagicNumbers.ENC_SUCCESS);
+			sendHeader(ChatMagicNumbers.SWITCH_TO_ENC_MODE);
 		} else {
 			while(!sc.hasNextLine());
-			byte[] message = Base64.getDecoder().decode(sc.nextLine().getBytes(StandardCharsets.UTF_8));
-			Panic.R_UNLESS(message[Constants.HEADER_OFFSET] == ChatMagicNumbers.ENC_TEST_STRING, message, this);
+			byte[] rawMessage = Base64.getDecoder().decode(sc.nextLine().getBytes(StandardCharsets.UTF_8));
+			if(rawMessage[Constants.HEADER_OFFSET] != ChatMagicNumbers.ENC_TEST_STRING) 
+				throw new ConnectionError(rawMessage[Constants.HEADER_OFFSET], ChatMagicNumbers.ENC_TEST_STRING, this);
 			byte[] decMessage = crypto.cryptoOperation(
-					message,CryptoModes.DECRYPT);
+					rawMessage,CryptoModes.DECRYPT);
 			byte[] toHash = new byte[decMessage.length+Constants.HEADER_SIZE];
 			Arrays.fill(toHash, (byte)(0));
 			System.arraycopy(decMessage, 0, toHash, Constants.CHECKSUM_OFFSET, decMessage.length);
@@ -451,12 +460,13 @@ public class Connection extends Thread{
 					Arrays.copyOfRange(toHash, Constants.MESSAGE_OFFSET, toHash.length),
 					Constants.TEST_BYTES)) {
 				sendHeader(ChatMagicNumbers.ENC_SUCCESS);
+				checkHeader(ChatMagicNumbers.SWITCH_TO_ENC_MODE);
 			}else{
 				sendHeader(ChatMagicNumbers.ENC_ERROR);
 				Log.log(new String[] {
 					getIP_PORT()
 				} , LogType.TEST_STING_DECRYPTION_FAILED);
-				throw new ConnectionError(message, this);
+				throw new ConnectionError(rawMessage, this);
 			}
 		}
 	}

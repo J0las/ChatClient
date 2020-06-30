@@ -27,7 +27,7 @@ public class ChatMagicNumbers{
 	public final static byte ENC_TEST_STRING		= 0x5F; 
 	/*Finalizes the keygen and switches to AES encryption with the generated key*/
 	public final static byte SWITCH_TO_ENC_MODE		= 0x6F;
-	public final static byte CONNECTION_NAME		= 0x7F; //Name of the connection Partner
+	public final static byte CONNECTION_NAME		= (0x7F); //Name of the connection Partner
 	public final static byte ENC_MESSAGE			= (byte)(0x8F); //Encrypted Message
 	/*The teststring could not be decrypted*/
 	public final static byte ENC_ERROR				= (byte)(0xE0);

@@ -26,13 +26,20 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 
+import chatclient.lib.ByteConverter;
+
 public class Log {
 	private static boolean setUp = false;
 	private static final int IP_PORT = 0;
 	private static final int OTHER_NAME = 1;
 	private static final int OWN_NAME = 2;
 	private static final int MESSAGE_CONTENTS = 2;
+	private static final int CALC_HASH = 2;
+	private static final int SEND_HEADER = 2;
+	private static final int SEND_HASH = 3;
 	private static final int AES_KEY_HASH = 3;
+	private static final int EXPECTED_HEADER = 3;
+	private static final int CORRUPTED_MESSAGE = 4;
 	
 	public static void init (boolean enabled){
 		if(enabled) {
@@ -57,6 +64,7 @@ public class Log {
 		}
 		setUp = true;
 	}
+	
 	public static void log(String[] args, LogType logType) {
 		if(!setUp) System.exit(0);
 		if(args == null) throw new IllegalArgumentException();
@@ -84,7 +92,7 @@ public class Log {
 			sb.append(" to: ");
 			sb.append(args[OWN_NAME]);
 			sb.append("\t");
-			byteArrayToHexString(sb,Base64.getDecoder().decode(args[AES_KEY_HASH].getBytes(StandardCharsets.UTF_8)));
+			ByteConverter.base64ToHexString(sb,args[AES_KEY_HASH]);
 			break;
 		case CREATED_NEW_CONNECTION:
 			if(args.length != 1) throw new IllegalArgumentException();
@@ -131,9 +139,28 @@ public class Log {
 			sb.append(args[OTHER_NAME]);
 			break;
 		case HASH_INVALID:
-			if(args.length != 1) throw new IllegalArgumentException();
+			if(args.length != 5) throw new IllegalArgumentException();
 			sb.append("Hash check failed for connection to: ");
 			sb.append(args[IP_PORT]);
+			sb.append(" / ");
+			sb.append(args[OTHER_NAME]);
+			sb.append(" calculated hash: ");
+			ByteConverter.base64ToHexString(sb, args[CALC_HASH]);
+			sb.append(" send hash: ");
+			ByteConverter.base64ToHexString(sb, args[SEND_HASH]);
+			sb.append(" UTF_8 encoded message: ");
+			sb.append(args[CORRUPTED_MESSAGE]);
+			break;
+		case HEADER_INVALID:
+			if(args.length != 4) throw new IllegalArgumentException();
+			sb.append("Header check failed for connection to: ");
+			sb.append(args[IP_PORT]);
+			sb.append(" / ");
+			sb.append(args[OTHER_NAME]);
+			sb.append(" send header: ");
+			sb.append(args[SEND_HEADER]);
+			sb.append(" expected header: ");
+			sb.append(args[EXPECTED_HEADER]);
 			break;
 		default:
 			sb.append("Illegal arguments pased!");
@@ -142,16 +169,8 @@ public class Log {
 		}
 		System.err.println(sb.toString());
 	}
+	
 	private static String getCurrentDateTime() {
 		return LocalDateTime.now().format(DateTimeFormatter.ofPattern("<yyyy-MM-dd | HH:mm:ss>"));
-	}
-	private static void byteArrayToHexString(StringBuilder sb, byte[] bytes) {
-		char[] hexDigits = new char[2];
-		sb.append("0x");
-		for(byte b : bytes) {
-			hexDigits[0] = Character.forDigit((b >> 4) & 0xF, 16);
-		    hexDigits[1] = Character.forDigit((b & 0xF), 16);
-		    sb.append(String.valueOf(hexDigits).toUpperCase());
-		}
 	}
 }

@@ -49,12 +49,7 @@ public class Hash {
 			/*Compute the hash*/
 			byte[] computedHash = md.digest(messageContent);
 			/*Throws an Exception received and computed checksum do not match*/
-			if(!Arrays.equals(computedHash,checksum)) {
-				Log.log(new String[] {
-						con.getIP_PORT(),
-				}, LogType.HASH_INVALID);
-			}
-			Panic.R_UNLESS(Arrays.equals(computedHash,checksum), message,con);
+			if(!Arrays.equals(computedHash,checksum)) throw new ConnectionError(computedHash, checksum ,messageContent, con);
 			break;
 		case CREATE_HASH:
 			/*Return the hash of the message*/

@@ -48,7 +48,7 @@ public class Launcher {
 		    final RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
 			final FileLock fileLock = randomAccessFile.getChannel().tryLock();
 			if(fileLock != null) {
-				Runtime.getRuntime().addShutdownHook(new Thread(()-> {
+				Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 try {
 					fileLock.release();
 					randomAccessFile.close();
