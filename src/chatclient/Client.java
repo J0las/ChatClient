@@ -36,9 +36,7 @@ class Client {
 		Connection[] c = Connections.toArray();;
 				c[0].sendMessage("Lol");
 		System.out.println(Arrays.toString(c));
-		System.out.println("K");
 		printNewMessages(c[1]);
-		System.out.println("aha");
 		c[1].sendMessage("Test1");
 		c[1].sendMessage("Test2");
 		c[0].sendMessage("Go");
@@ -49,7 +47,6 @@ class Client {
 	private void printNewMessages(Connection con) throws ConnectionError {
 		if(con.isClosed()) Connections.remove(con);
 		con.getNewMessages();
-		System.out.println("Escaped");
 	}
 	void newConnection() throws ConnectionError{
 		/*Buffer for the raw ip*/
@@ -73,7 +70,7 @@ class Client {
 						con.start();
 				Connections.add(con);
 			} catch (IOException e) {
-				throw new ConnectionError("test".getBytes(),null);
+				throw new ConnectionError(name.getBytes(),null);
 			}
 	}
 }
