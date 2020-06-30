@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import chatclient.lib.ArrayModifications;
 import chatclient.lib.ConnectionError;
 import chatclient.lib.Constants;
 import chatclient.log.Log;
@@ -52,9 +51,10 @@ class Server extends Thread {
 				Log.log(new String[] {
 					s.getInetAddress().getHostAddress()+"/"+s.getLocalPort()},
 				LogType.INCOMMING_CONNECTION);
+				Connection con = new Connection(s,name,false);
+				con.start();
 				/*Adds the new connection in accepting configuration to the shared ArrayList*/
-				Connections.modifyConnections(ArrayModifications.ADD_CONNECTION,
-							new Connection(s,name,false));
+				Connections.add(con);
 			} catch (ConnectionError | IOException e) {
 				e.printStackTrace();
 			}

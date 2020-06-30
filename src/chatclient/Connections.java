@@ -16,28 +16,18 @@
 
 package chatclient;
 
-import java.util.ArrayList;
+import java.util.Vector;
 
-import chatclient.lib.ArrayModifications;
 /*Static class for storing connections*/
 class Connections {
-	private final static ArrayList<Connection> connections= new ArrayList<Connection>();
-	static synchronized Connection[] modifyConnections(ArrayModifications mode,Connection connection) {
-		switch(mode) {
-		case ADD_CONNECTION:
-			/* Adds a new Connection to the end of the ArrayList and returns null*/
-			connections.add(connection);
-			break;
-		case REMOVE_CONNECTION:
-			/*Removes the specified connection from the ArrayList and returns null*/
-			connections.remove(connection);
-			break;
-		case GET_CURRENT_CONNECTIONS:
-			/*Returns an Array of the current connections in the ArrayList*/
-			Connection[] connectionArray = new Connection[connections.size()];
-			connections.toArray(connectionArray);
-			return connectionArray;
-		}	
-		return null;
+	private final static Vector<Connection> connections= new Vector<Connection>();
+	public static void add(Connection con) {
+		connections.add(con);
+	}
+	public static void remove(Connection con) {
+		connections.remove(con);
+	}
+	public static Connection[] toArray() {
+		return connections.toArray(new Connection[] {});
 	}
 }

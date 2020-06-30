@@ -18,8 +18,6 @@ package chatclient;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-
-import chatclient.lib.ArrayModifications;
 /*Safely shuts down the server and open connections on program termination*/
 class ShutDownHandler extends Thread {
 	private ServerSocket server;
@@ -37,7 +35,7 @@ class ShutDownHandler extends Thread {
 		}
 		/*Closes all open connections*/
 		System.out.println("Closing existing connections");
-		Connection[] cons = Connections.modifyConnections(ArrayModifications.GET_CURRENT_CONNECTIONS, null);
+		Connection[] cons = Connections.toArray();
 		for(Connection con : cons) {
 			con.closeConnection();
 		}

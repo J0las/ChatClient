@@ -17,8 +17,7 @@
 
 package chatclient.lib;
 
-public enum ArrayModifications {
-	ADD_CONNECTION,
-	REMOVE_CONNECTION,
-	GET_CURRENT_CONNECTIONS,
+public enum QueueModes {
+	ADD,
+	GET,
 }

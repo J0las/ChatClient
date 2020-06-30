@@ -48,9 +48,7 @@
 package chatclient;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
-import java.io.PushbackInputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
@@ -64,6 +62,8 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Scanner;
 
 import javax.crypto.Cipher;
@@ -81,15 +81,15 @@ import chatclient.lib.CryptoModes;
 import chatclient.lib.Hash;
 import chatclient.lib.HashModes;
 import chatclient.lib.Panic;
+import chatclient.lib.QueueModes;
 import chatclient.log.Log;
 import chatclient.log.LogType;
 
-public class Connection{
+public class Connection extends Thread{
 	/*Socket for connection to the other ChatClient*/
 	private Socket 		socket;
 	/*printstream for easy output*/
 	private PrintStream out;
-	private PushbackInputStream in;
 	/*Name of the other ChatCLient*/
 	private String 		otherName	= "";
 	/*Name of this
@@ -103,17 +103,18 @@ public class Connection{
 	private Hash 		hash;
 	/*Cryptoobject for encrypting and decrypting messages and hashes*/
 	private Crypto 		crypto;
+	private Queue<String> input;
 	Connection(Socket socket,String ownName,boolean openedConnection) 
 				throws ConnectionError{
 		this.hash = new Hash(this);
 		this.socket=socket;
 		this.ownName = ownName;
+		this.input = new LinkedList<String>();
 		try {
 			/*Create a printstream for easy output*/
 			this.out = new PrintStream(socket.getOutputStream(),true,StandardCharsets.UTF_8);
 			/*Create an scanner for easy input*/
-			this.in = new PushbackInputStream(socket.getInputStream());
-			sc = new Scanner(this.in, StandardCharsets.UTF_8);
+			sc = new Scanner(socket.getInputStream(), StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -149,26 +150,35 @@ public class Connection{
 				otherName
 		}, LogType.CONNECTION_ESTABLISHED);
 	}
-	/*Return true if there is a new Message*/
-	boolean hasNewMessage(){
-		try {
-			int i = this.in.available();
-			if(i == 0) {
-				return false;
-			} else {
-				return true;
-			}
-		} catch (IOException e) {
-			return false;
+	@Override
+	public void run() {
+		while(!this.isInterrupted()) {
+			while(!sc.hasNextLine());
+				queue(sc.nextLine(), QueueModes.ADD);
 		}
-		
+	}
+	private synchronized String queue(String message, QueueModes mode) {
+		switch(mode) {
+		case ADD:
+			input.add(message);
+			return null;
+		case GET:
+			return input.poll();
+		default:
+			throw new IllegalArgumentException();
+		}
+	}
+	void getNewMessages() {
+		String message = queue(null, QueueModes.GET);
+		while(message != null) {
+			System.out.println(getNewMessage(message));
+			message = queue(null, QueueModes.GET);
+		}
 	}
 	/*Returns the content of the next Message*/
-	String getNewMessage() throws ConnectionError{
-		/*Panics if there is no new Message*/
-		Panic.R_UNLESS(sc.hasNextLine(), "No new message".getBytes(), this);
+	private String getNewMessage(String stringMessage) throws ConnectionError{
 		/*Decode the message from Base64 to raw bytes*/
-		byte[] rawMessage = Base64.getDecoder().decode(sc.nextLine().getBytes(StandardCharsets.UTF_8));
+		byte[] rawMessage = Base64.getDecoder().decode(stringMessage.getBytes(StandardCharsets.UTF_8));
 		/*Validates the header*/
 		Panic.R_UNLESS(rawMessage[Constants.HEADER_OFFSET] == ChatMagicNumbers.ENC_MESSAGE, rawMessage, this);
 		/*Decrypts the data*/

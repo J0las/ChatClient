@@ -22,7 +22,6 @@ import java.net.Socket;
 import java.util.Arrays;
 import java.util.Scanner;
 
-import chatclient.lib.ArrayModifications;
 import chatclient.lib.ConnectionError;
 import chatclient.lib.Constants;
 
@@ -34,8 +33,7 @@ class Client {
 	}
 	void run() throws ConnectionError{
 		newConnection();
-		Connection[] c = Connections.modifyConnections(ArrayModifications.GET_CURRENT_CONNECTIONS, null);
-		System.out.println(c[0].hasNewMessage());
+		Connection[] c = Connections.toArray();;
 				c[0].sendMessage("Lol");
 		System.out.println(Arrays.toString(c));
 		System.out.println("K");
@@ -49,12 +47,8 @@ class Client {
 		printNewMessages(c[0]);
 	}
 	private void printNewMessages(Connection con) throws ConnectionError {
-		if(con.isClosed()) Connections.modifyConnections(ArrayModifications.REMOVE_CONNECTION,con);
-		while(con.hasNewMessage()) {
-			System.out.println("1");
-			System.out.println(con.getOtherName()+"	"+con.getNewMessage());
-			System.out.println("2");
-		}
+		if(con.isClosed()) Connections.remove(con);
+		con.getNewMessages();
 		System.out.println("Escaped");
 	}
 	void newConnection() throws ConnectionError{
@@ -72,10 +66,12 @@ class Client {
 		}
 		/*Returns a new Connection*/
 			try {
-				Connections.modifyConnections(ArrayModifications.ADD_CONNECTION,new Connection(
-							new Socket(InetAddress.getByAddress(ipBytes),
-									Constants.STANDARD_PORT),
-							"Neue", true));
+				Connection con = new Connection(
+						new Socket(InetAddress.getByAddress(ipBytes),
+								Constants.STANDARD_PORT),
+						"Neue", true);
+						con.start();
+				Connections.add(con);
 			} catch (IOException e) {
 				throw new ConnectionError("test".getBytes(),null);
 			}
