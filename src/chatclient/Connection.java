@@ -63,6 +63,7 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.LinkedList;
+import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Scanner;
 
@@ -91,11 +92,10 @@ public class Connection extends Thread{
 	private Socket 		socket;
 	/*printstream for easy output*/
 	private PrintStream out;
-	/*Name of the other ChatCLient*/
+	/*Name of the other ChatClient*/
 	private String 		otherName	= "";
-	/*Name of this
-	 *  ChatCLient*/
-	private String		ownName = "";
+	/*Name of this ChatClient*/
+	private String 		ownName = "";
 	/*scanner for easy input*/
 	private Scanner 	sc;
 	/*Represents the state of the connection*/
@@ -107,10 +107,11 @@ public class Connection extends Thread{
 	private Queue<String> input;
 	Connection(Socket socket,String ownName,boolean openedConnection) 
 				throws ConnectionError{
+		/*Setup objects*/
 		this.hash = new Hash(this);
-		this.socket=socket;
-		this.ownName = ownName;
+		this.socket = socket;
 		this.input = new LinkedList<String>();
+		this.ownName = ownName;
 		if(openedConnection)  {
 			Log.log(new String[] {
 						getIP_PORT()},
@@ -146,14 +147,14 @@ public class Connection extends Thread{
 		keyExchange(openedConnection);
 		checkEncryption(openedConnection);
 		if(openedConnection) {
-			sendName();
+			sendName(ownName);
 			/*Receives the name of the other ChatClient*/
 			recieveName();
 		} else {
 			/*Receives the name of the other ChatClient*/
 			recieveName();
 			/*Sends his own Name to the other ChatCllient*/
-			sendName();
+			sendName(ownName);
 		}
 		Log.log(new String[] {
 				getIP_PORT(),
@@ -167,22 +168,26 @@ public class Connection extends Thread{
 				queue(sc.nextLine(), QueueModes.ADD);
 		}
 	}
-	private synchronized String queue(String message, QueueModes mode) {
+	private synchronized String queue(String message, QueueModes mode) throws NoSuchElementException{
 		switch(mode) {
 		case ADD:
 			input.add(message);
 			return null;
 		case GET:
-			return input.poll();
+			return input.remove();
 		default:
 			throw new IllegalArgumentException();
 		}
 	}
 	void getNewMessages() {
-		String message = queue(null, QueueModes.GET);
-		while(message != null) {
-			System.out.println(getNewMessage(message));
-			message = queue(null, QueueModes.GET);
+		try {
+			String message = queue(null, QueueModes.GET);
+			while(message != null) {
+				System.out.println(getNewMessage(message));
+				message = queue(null, QueueModes.GET);
+			}
+		} catch(NoSuchElementException e) {
+			return;
 		}
 	}
 	/*Returns the content of the next Message*/
@@ -244,7 +249,7 @@ public class Connection extends Thread{
 	}
 	/*Sends the name of this ChatClient to the other ChatClient*/
 	private void sendName() throws ConnectionError {
-		byte[] nameBytes = this.ownName.getBytes(StandardCharsets.UTF_8);
+		byte[] nameBytes = ownName.getBytes(StandardCharsets.UTF_8);
 		/*Allocate a buffer for the hash and name to be encrypted*/
 		byte[] toEnc = new byte[Constants.HEADER_SIZE+Constants.CHECKSUM_SIZE+nameBytes.length];
 		/*Copy the hash into the buffer*/
@@ -321,13 +326,6 @@ public class Connection extends Thread{
 		if(response[Constants.HEADER_OFFSET] != header) 
 			throw new ConnectionError(response[Constants.HEADER_OFFSET], header, this);
 	}
-	private byte extractHeader() {
-		/*Wait for the response*/
-		while(!sc.hasNextLine());
-		/*Check if the response contains the expected value*/
-		byte[] response = Base64.getDecoder().decode(sc.nextLine());
-		return response[Constants.HEADER_OFFSET];
-	}
 	private void keyExchange(boolean opened) throws ConnectionError {
 		try {
 			byte[] 	sharedSecret = new byte[0];
@@ -367,8 +365,6 @@ public class Connection extends Thread{
 			}
 			Log.log(new String[] {
 					getIP_PORT(),
-					null,
-					ownName,
 					new String(ByteConverter.byteArrayToHexString(hash.hash(AES_Key.getEncoded(),HashModes.CREATE_HASH)))
 			}, LogType.AES_KEY_HASH);
 		}catch(IOException e) {

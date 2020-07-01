@@ -32,12 +32,12 @@ public class Log {
 	private static final int IP_PORT = 0;
 	private static final int IP = 0;
 	private static final int OTHER_NAME = 1;
+	private static final int AES_KEY_HASH = 1;
 	private static final int OWN_NAME = 2;
 	private static final int MESSAGE_CONTENTS = 2;
 	private static final int CALC_HASH = 2;
 	private static final int SEND_HEADER = 2;
 	private static final int SEND_HASH = 3;
-	private static final int AES_KEY_HASH = 3;
 	private static final int EXPECTED_HEADER = 3;
 	private static final int CORRUPTED_MESSAGE = 4;
 	
@@ -86,11 +86,9 @@ public class Log {
 			sb.append(" was closed.");
 			break;
 		case AES_KEY_HASH:
-			if(args.length != 4) throw new IllegalArgumentException();
+			if(args.length != 2) throw new IllegalArgumentException();
 			sb.append("SHA256 over AES_KEY for Connection: ");
 			sb.append(args[IP_PORT]);
-			sb.append(" to: ");
-			sb.append(args[OWN_NAME]);
 			sb.append("\t");
 			sb.append(args[AES_KEY_HASH]);
 			break;
