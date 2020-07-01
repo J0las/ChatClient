@@ -33,6 +33,8 @@ public class Log {
 	private static final int IP = 0;
 	private static final int OTHER_NAME = 1;
 	private static final int AES_KEY_HASH = 1;
+	private static final int HEX_MESSAGE = 1;
+	private static final int RAW_MESSAGE = 1;
 	private static final int OWN_NAME = 2;
 	private static final int MESSAGE_CONTENTS = 2;
 	private static final int CALC_HASH = 2;
@@ -162,7 +164,7 @@ public class Log {
 			sb.append(" abort Header: ");
 			sb.append(ByteConverter.byteToHex(ChatMagicNumbers.CLOSE_CONNECTION));
 			break;
-		case INVALID_PUB_KEY:
+		case PUB_KEY_INVALID:
 			if(args.length != 1) throw new IllegalArgumentException();
 			sb.append("Key exchange failed in connection: ");
 			sb.append(args[IP_PORT]);
@@ -178,6 +180,19 @@ public class Log {
 			sb.append("Could not reach specified ip: ");
 			sb.append(args[IP]);
 			break;
+		case MESSAGE_FORMAT_INVALID:
+			if(args.length != 2) throw new IllegalArgumentException();
+			sb.append("Recieved a new message with an invalid format in connection: ");
+			sb.append(args[IP_PORT]);
+			sb.append(" hexmessage: ");
+			sb.append(args[HEX_MESSAGE]);
+			break;
+		case BASE64_ENCODING_INVALID:
+			if(args.length != 2) throw new IllegalArgumentException();
+			sb.append("Recieved a new message with an invalid base64 encoding in connection: ");
+			sb.append(args[IP_PORT]);
+			sb.append(" rawmessage: ");
+			sb.append(args[RAW_MESSAGE]);
 		default:
 			sb.append("Illegal arguments pased!");
 			System.err.println(sb.toString());

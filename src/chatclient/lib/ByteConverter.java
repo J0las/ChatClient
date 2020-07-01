@@ -16,22 +16,8 @@
 
 package chatclient.lib;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-
 public class ByteConverter {
-	public static void basew64ToHexString(StringBuilder sb, String base64) {
-		byteArrayToHexString(sb, Base64.getDecoder().decode(base64.getBytes(StandardCharsets.UTF_8)));
-	}
-	public static void byteArrayToHexString(StringBuilder sb, byte[] bytes) {
-		char[] hexDigits = new char[2];
-		sb.append("0x");
-		for(byte b : bytes) {
-			hexDigits[0] = Character.forDigit((b >> 4) & 0xF, 16);
-		    hexDigits[1] = Character.forDigit((b & 0xF), 16);
-		    sb.append(String.valueOf(hexDigits).toUpperCase());
-		}
-	}
+
 	public static String byteToHex( byte b) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("0x");
@@ -43,7 +29,13 @@ public class ByteConverter {
 	}
 	public static String byteArrayToHexString(byte[] bytes) {
 		StringBuilder sb = new StringBuilder();
-		byteArrayToHexString(sb, bytes);
+		char[] hexDigits = new char[2];
+		sb.append("0x");
+		for(byte b : bytes) {
+			hexDigits[0] = Character.forDigit((b >> 4) & 0xF, 16);
+		    hexDigits[1] = Character.forDigit((b & 0xF), 16);
+		    sb.append(String.valueOf(hexDigits).toUpperCase());
+		}
 		return sb.toString();
 	}
 }

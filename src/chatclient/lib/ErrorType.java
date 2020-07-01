@@ -1,7 +1,7 @@
 package chatclient.lib;
 
 public enum ErrorType {
-	INVALID_PUB_KEY,
+	PUB_KEY_INVALID,
 	GENERAL_IO_ERROR,
-	TEST_STRING_DEC_FAILED
+	TEST_STRING_DEC_FAILED,
 }

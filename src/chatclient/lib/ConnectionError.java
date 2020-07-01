@@ -26,24 +26,24 @@ import chatclient.log.LogType;
 
 @SuppressWarnings("serial")
 public class ConnectionError extends Error {
-
+	
 	public ConnectionError(Connection con, ErrorType errorType) {
 		allways(con);
 		switch(errorType) {
-		case INVALID_PUB_KEY:
+		case PUB_KEY_INVALID:
 			Log.log(new String[] {
 					con.getIP_PORT()
-			}, LogType.INVALID_PUB_KEY);
+				}, LogType.PUB_KEY_INVALID);
 			break;
 		case GENERAL_IO_ERROR:
 			Log.log(new String[] {
 					con.getIP_PORT()
-			}, LogType.GENERAL_IO_ERROR);
+				}, LogType.GENERAL_IO_ERROR);
 			break;
 		case TEST_STRING_DEC_FAILED:
 			Log.log(new String[] {
 					con.getIP_PORT()
-			}, LogType.TEST_STING_DECRYPTION_FAILED);
+				}, LogType.TEST_STING_DECRYPTION_FAILED);
 		default:
 			throw new IllegalArgumentException();
 		}
@@ -58,8 +58,9 @@ public class ConnectionError extends Error {
 				ByteConverter.byteArrayToHexString(calcHash),
 				ByteConverter.byteArrayToHexString(sendHash),
 				new String(messageContents, StandardCharsets.UTF_8)
-		}, LogType.HASH_INVALID);
+			}, LogType.HASH_INVALID);
 	}
+	/*Case for an invalid header*/
 	public ConnectionError(byte sendHeader, byte expectedHeader, Connection con) {
 		allways(con);
 		/*Log the event*/
@@ -68,7 +69,23 @@ public class ConnectionError extends Error {
 				con.getOtherName(),
 				ByteConverter.byteToHex(sendHeader),
 				ByteConverter.byteToHex(expectedHeader)
-		}, LogType.HEADER_INVALID);
+			}, LogType.HEADER_INVALID);
+	}
+	/*Case for an invalid message length*/
+	public ConnectionError(byte[] rawMessage, Connection con) {
+		allways(con);
+			Log.log(new String[] {
+					con.getIP_PORT(),
+					ByteConverter.byteArrayToHexString(rawMessage)
+				}, LogType.MESSAGE_FORMAT_INVALID);
+	}
+	/*Case for an invalid base64 encoding of an recieved message*/
+	public ConnectionError(String rawMessage, Connection con) {
+		allways(con);
+		Log.log(new String[] {
+				con.getIP_PORT(),
+				rawMessage
+		}, LogType.BASE64_ENCODING_INVALID);
 	}
 	private void allways(Connection con) {
 		con.abortSetup();

@@ -147,14 +147,14 @@ public class Connection extends Thread{
 		keyExchange(openedConnection);
 		checkEncryption(openedConnection);
 		if(openedConnection) {
-			sendName(ownName);
+			sendName();
 			/*Receives the name of the other ChatClient*/
 			recieveName();
 		} else {
 			/*Receives the name of the other ChatClient*/
 			recieveName();
 			/*Sends his own Name to the other ChatCllient*/
-			sendName(ownName);
+			sendName();
 		}
 		Log.log(new String[] {
 				getIP_PORT(),
@@ -163,9 +163,12 @@ public class Connection extends Thread{
 	}
 	@Override
 	public void run() {
-		while(!this.isInterrupted()) {
-			while(!sc.hasNextLine());
+		try {
+			while(!this.isInterrupted()) {
 				queue(sc.nextLine(), QueueModes.ADD);
+			}
+		} catch(NoSuchElementException | IllegalStateException e) {
+			return;
 		}
 	}
 	private synchronized String queue(String message, QueueModes mode) throws NoSuchElementException{
@@ -193,7 +196,8 @@ public class Connection extends Thread{
 	/*Returns the content of the next Message*/
 	private String getNewMessage(String stringMessage) throws ConnectionError{
 		/*Decode the message from Base64 to raw bytes*/
-		byte[] rawMessage = Base64.getDecoder().decode(stringMessage.getBytes(StandardCharsets.UTF_8));
+		byte[] rawMessage = decodeBase64(stringMessage);
+		checkMessageFormat(rawMessage);
 		/*Validates the header*/
 		if(rawMessage[Constants.HEADER_OFFSET] != ChatMagicNumbers.ENC_MESSAGE) 
 			throw new ConnectionError(rawMessage[Constants.HEADER_OFFSET], ChatMagicNumbers.ENC_MESSAGE, this);
@@ -275,7 +279,8 @@ public class Connection extends Thread{
 		/*Wait for the next message*/
 		while(!sc.hasNextLine());
 		/*Decode the incoming message from Base64 to raw bytes*/
-		byte[] rawMessage =Base64.getDecoder().decode(sc.nextLine().getBytes(StandardCharsets.UTF_8));
+		byte[] rawMessage = decodeBase64(sc.nextLine());
+		checkMessageFormat(rawMessage);
 		/*Check if the headerbyte is valid*/
 		if(rawMessage[Constants.HEADER_OFFSET] != ChatMagicNumbers.CONNECTION_NAME) 
 			throw new ConnectionError(rawMessage[Constants.HEADER_OFFSET], ChatMagicNumbers.CONNECTION_NAME, this);
@@ -322,7 +327,7 @@ public class Connection extends Thread{
 		/*Wait for the response*/
 		while(!sc.hasNextLine());
 		/*Check if the response contains the expected value*/
-		byte[] response = Base64.getDecoder().decode(sc.nextLine());
+		byte[] response = decodeBase64(sc.nextLine());
 		if(response[Constants.HEADER_OFFSET] != header) 
 			throw new ConnectionError(response[Constants.HEADER_OFFSET], header, this);
 	}
@@ -368,9 +373,9 @@ public class Connection extends Thread{
 					new String(ByteConverter.byteArrayToHexString(hash.hash(AES_Key.getEncoded(),HashModes.CREATE_HASH)))
 			}, LogType.AES_KEY_HASH);
 		}catch(IOException e) {
-			throw new ConnectionError(this, ErrorType.INVALID_PUB_KEY);
+			throw new ConnectionError(this, ErrorType.PUB_KEY_INVALID);
 		} catch(InvalidKeySpecException | InvalidKeyException | InvalidAlgorithmParameterException e) {
-			throw new ConnectionError(this, ErrorType.INVALID_PUB_KEY);
+			throw new ConnectionError(this, ErrorType.PUB_KEY_INVALID);
 		}catch(NoSuchAlgorithmException e) {
 			throw new AssertionError();
 		}
@@ -386,7 +391,8 @@ public class Connection extends Thread{
 	}
 	private byte[] recieveEncodedParams() throws ConnectionError {
 		while(!sc.hasNextLine());
-		byte[] rawMessage = Base64.getDecoder().decode(sc.nextLine().getBytes(StandardCharsets.UTF_8));
+		byte[] rawMessage = decodeBase64(sc.nextLine());
+		checkMessageFormat(rawMessage);
 		if(rawMessage[Constants.HEADER_OFFSET] != ChatMagicNumbers.ENCODED_PARAMS) 
 			throw new ConnectionError(rawMessage[Constants.HEADER_OFFSET], ChatMagicNumbers.ENCODED_PARAMS, this);
 		hash.hash(rawMessage, HashModes.VALIDATE_HASH);
@@ -413,7 +419,8 @@ public class Connection extends Thread{
 		/*Wait for the incoming message*/
 		while(!sc.hasNextLine());
 		/*Decode the Base64 message*/
-		byte[] rawMessage = Base64.getDecoder().decode(sc.nextLine().getBytes(StandardCharsets.UTF_8));
+		byte[] rawMessage = decodeBase64(sc.nextLine());
+		checkMessageFormat(rawMessage);
 		/*Validate the Header*/
 		if(rawMessage[Constants.HEADER_OFFSET] != ChatMagicNumbers.PUBLIC_KEY) 
 			throw new ConnectionError(rawMessage[Constants.HEADER_OFFSET], ChatMagicNumbers.PUBLIC_KEY, this);
@@ -447,7 +454,7 @@ public class Connection extends Thread{
 			sendHeader(ChatMagicNumbers.SWITCH_TO_ENC_MODE);
 		} else {
 			while(!sc.hasNextLine());
-			byte[] rawMessage = Base64.getDecoder().decode(sc.nextLine().getBytes(StandardCharsets.UTF_8));
+			byte[] rawMessage = decodeBase64(sc.nextLine());
 			if(rawMessage[Constants.HEADER_OFFSET] != ChatMagicNumbers.ENC_TEST_STRING) 
 				throw new ConnectionError(rawMessage[Constants.HEADER_OFFSET], ChatMagicNumbers.ENC_TEST_STRING, this);
 			byte[] decMessage = crypto.cryptoOperation(
@@ -465,6 +472,17 @@ public class Connection extends Thread{
 				sendHeader(ChatMagicNumbers.ENC_ERROR);
 				throw new ConnectionError(this, ErrorType.TEST_STRING_DEC_FAILED);
 			}
+		}
+	}
+	private void checkMessageFormat(byte[] rawMessage) throws ConnectionError{
+		if(rawMessage.length <= Constants.HEADER_SIZE + Constants.CHECKSUM_SIZE)
+			throw new ConnectionError(rawMessage, this);
+	}
+	private byte[] decodeBase64(String message) {
+		try {
+			return Base64.getDecoder().decode(message.getBytes(StandardCharsets.UTF_8));
+		} catch(IllegalArgumentException e) {
+			throw new ConnectionError(message, this);
 		}
 	}
 	public Socket getSocket() {
@@ -486,5 +504,6 @@ public class Connection extends Thread{
 	}
 	public void abortSetup() {
 		sendHeader(ChatMagicNumbers.CLOSE_CONNECTION);
+		sc.close();
 	}
 }	
