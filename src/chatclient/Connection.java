@@ -47,6 +47,7 @@
 
 package chatclient;
 
+import java.awt.Color;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.Socket;
@@ -73,6 +74,10 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.interfaces.DHPublicKey;
 import javax.crypto.spec.DHParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.swing.JTextPane;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 
 import chatclient.lib.ByteConverter;
 import chatclient.lib.ChatMagicNumbers;
@@ -105,6 +110,12 @@ public class Connection extends Thread{
 	/*Cryptoobject for encrypting and decrypting messages and hashes*/
 	private Crypto 		crypto;
 	private Queue<String> input;
+	private JTextPane pane;
+	SimpleAttributeSet ownNameColor;
+	SimpleAttributeSet otherNameColor;
+	SimpleAttributeSet MessageColor;
+	StyledDocument doc;
+	
 	Connection(Socket socket,String ownName,boolean openedConnection) 
 				throws ConnectionError{
 		/*Setup objects*/
@@ -112,6 +123,15 @@ public class Connection extends Thread{
 		this.socket = socket;
 		this.input = new LinkedList<String>();
 		this.ownName = ownName;
+		this.pane = new JTextPane();
+		this.pane.setEditable(false);
+		this.doc = this.pane.getStyledDocument();
+		this.MessageColor = new SimpleAttributeSet();
+		StyleConstants.setForeground(this.MessageColor, Color.BLACK);
+		this.ownNameColor = new SimpleAttributeSet();
+		StyleConstants.setForeground(this.ownNameColor, Color.BLUE);
+		this.otherNameColor = new SimpleAttributeSet();
+		StyleConstants.setForeground(this.otherNameColor, Color.GREEN);
 		if(openedConnection)  {
 			Log.log(new String[] {
 						getIP_PORT()},
