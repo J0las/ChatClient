@@ -19,7 +19,7 @@ package chatclient;
 import java.util.Vector;
 
 /*Static class for storing connections*/
-class Connections {
+public class Connections {
 	private final static Vector<Connection> connections= new Vector<Connection>();
 	public static void add(Connection con) {
 		connections.add(con);

@@ -21,16 +21,16 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Base64;
 
 import chatclient.lib.ByteConverter;
+import chatclient.lib.ChatMagicNumbers;
 
 public class Log {
 	private static boolean setUp = false;
 	private static final int IP_PORT = 0;
+	private static final int IP = 0;
 	private static final int OTHER_NAME = 1;
 	private static final int OWN_NAME = 2;
 	private static final int MESSAGE_CONTENTS = 2;
@@ -92,7 +92,7 @@ public class Log {
 			sb.append(" to: ");
 			sb.append(args[OWN_NAME]);
 			sb.append("\t");
-			ByteConverter.base64ToHexString(sb,args[AES_KEY_HASH]);
+			sb.append(args[AES_KEY_HASH]);
 			break;
 		case CREATED_NEW_CONNECTION:
 			if(args.length != 1) throw new IllegalArgumentException();
@@ -145,9 +145,9 @@ public class Log {
 			sb.append(" / ");
 			sb.append(args[OTHER_NAME]);
 			sb.append(" calculated hash: ");
-			ByteConverter.base64ToHexString(sb, args[CALC_HASH]);
+			sb.append(args[CALC_HASH]);
 			sb.append(" send hash: ");
-			ByteConverter.base64ToHexString(sb, args[SEND_HASH]);
+			sb.append(args[SEND_HASH]);
 			sb.append(" UTF_8 encoded message: ");
 			sb.append(args[CORRUPTED_MESSAGE]);
 			break;
@@ -161,6 +161,24 @@ public class Log {
 			sb.append(args[SEND_HEADER]);
 			sb.append(" expected header: ");
 			sb.append(args[EXPECTED_HEADER]);
+			sb.append(" abort Header: ");
+			sb.append(ByteConverter.byteToHex(ChatMagicNumbers.CLOSE_CONNECTION));
+			break;
+		case INVALID_PUB_KEY:
+			if(args.length != 1) throw new IllegalArgumentException();
+			sb.append("Key exchange failed in connection: ");
+			sb.append(args[IP_PORT]);
+			sb.append(" because of an invalid public Key");
+			break;
+		case GENERAL_IO_ERROR:
+			if(args.length != 1) throw new IllegalArgumentException();
+			sb.append("A general io error has occurred in connection: ");
+			sb.append(args[IP_PORT]);
+			break;
+		case UNREACHABLE_IP:
+			if(args.length != 1) throw new IllegalArgumentException();
+			sb.append("Could not reach specified ip: ");
+			sb.append(args[IP]);
 			break;
 		default:
 			sb.append("Illegal arguments pased!");

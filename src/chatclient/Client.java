@@ -24,6 +24,8 @@ import java.util.Scanner;
 
 import chatclient.lib.ConnectionError;
 import chatclient.lib.Constants;
+import chatclient.lib.ErrorType;
+import chatclient.lib.UnreachableIPException;
 
 class Client {
 	private Scanner sc 	= new Scanner(System.in);
@@ -32,7 +34,11 @@ class Client {
 		this.name = name;
 	}
 	void run() throws ConnectionError{
+		try {
 		newConnection();
+		} catch (UnreachableIPException e) {
+			return;
+		}
 		Connection[] c = Connections.toArray();;
 				c[0].sendMessage("Lol");
 		System.out.println(Arrays.toString(c));
@@ -48,7 +54,7 @@ class Client {
 		if(con.isClosed()) Connections.remove(con);
 		con.getNewMessages();
 	}
-	void newConnection() throws ConnectionError{
+	void newConnection() throws ConnectionError, UnreachableIPException{
 		/*Buffer for the raw ip*/
 		byte[] ipBytes = new byte[4];
 		{	
@@ -62,15 +68,18 @@ class Client {
 			}
 		}
 		/*Returns a new Connection*/
+		Connection con = null;
 			try {
-				Connection con = new Connection(
-						new Socket(InetAddress.getByAddress(ipBytes),
+				InetAddress ip = InetAddress.getByAddress(ipBytes);
+				if(!ip.isReachable(1000)) throw new UnreachableIPException(ip);
+				con = new Connection(
+						new Socket(ip,
 								Constants.STANDARD_PORT),
 						"Neue", true);
 						con.start();
 				Connections.add(con);
 			} catch (IOException e) {
-				throw new ConnectionError(name.getBytes(),null);
+				throw new ConnectionError(con, ErrorType.GENERAL_IO_ERROR);
 			}
 	}
 }

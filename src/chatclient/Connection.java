@@ -73,11 +73,13 @@ import javax.crypto.interfaces.DHPublicKey;
 import javax.crypto.spec.DHParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import chatclient.lib.ByteConverter;
 import chatclient.lib.ChatMagicNumbers;
 import chatclient.lib.ConnectionError;
 import chatclient.lib.Constants;
 import chatclient.lib.Crypto;
 import chatclient.lib.CryptoModes;
+import chatclient.lib.ErrorType;
 import chatclient.lib.Hash;
 import chatclient.lib.HashModes;
 import chatclient.lib.QueueModes;
@@ -367,10 +369,12 @@ public class Connection extends Thread{
 					getIP_PORT(),
 					null,
 					ownName,
-					new String(Base64.getEncoder().encode(hash.hash(AES_Key.getEncoded(),HashModes.CREATE_HASH)),StandardCharsets.UTF_8)
+					new String(ByteConverter.byteArrayToHexString(hash.hash(AES_Key.getEncoded(),HashModes.CREATE_HASH)))
 			}, LogType.AES_KEY_HASH);
-		}catch(IOException | InvalidKeyException | InvalidAlgorithmParameterException | InvalidKeySpecException e) {
-			throw new ConnectionError("AES KEYEXCHANGE FAILED!".getBytes(StandardCharsets.UTF_8),this);
+		}catch(IOException e) {
+			throw new ConnectionError(this, ErrorType.INVALID_PUB_KEY);
+		} catch(InvalidKeySpecException | InvalidKeyException | InvalidAlgorithmParameterException e) {
+			throw new ConnectionError(this, ErrorType.INVALID_PUB_KEY);
 		}catch(NoSuchAlgorithmException e) {
 			throw new AssertionError();
 		}
@@ -463,10 +467,7 @@ public class Connection extends Thread{
 				checkHeader(ChatMagicNumbers.SWITCH_TO_ENC_MODE);
 			}else{
 				sendHeader(ChatMagicNumbers.ENC_ERROR);
-				Log.log(new String[] {
-					getIP_PORT()
-				} , LogType.TEST_STING_DECRYPTION_FAILED);
-				throw new ConnectionError(rawMessage, this);
+				throw new ConnectionError(this, ErrorType.TEST_STRING_DEC_FAILED);
 			}
 		}
 	}
@@ -486,5 +487,8 @@ public class Connection extends Thread{
 	}
 	public String getIP_PORT() {
 		return socket.getInetAddress().getHostAddress()+"/"+socket.getPort();
+	}
+	public void abortSetup() {
+		sendHeader(ChatMagicNumbers.CLOSE_CONNECTION);
 	}
 }	

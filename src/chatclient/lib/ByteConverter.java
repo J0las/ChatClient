@@ -20,7 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 public class ByteConverter {
-	public static void base64ToHexString(StringBuilder sb, String base64) {
+	public static void basew64ToHexString(StringBuilder sb, String base64) {
 		byteArrayToHexString(sb, Base64.getDecoder().decode(base64.getBytes(StandardCharsets.UTF_8)));
 	}
 	public static void byteArrayToHexString(StringBuilder sb, byte[] bytes) {
@@ -39,6 +39,11 @@ public class ByteConverter {
 				Character.forDigit((b >> 4) & 0xF, 16),
 				Character.forDigit((b & 0xF), 16)
 		}).toUpperCase());
+		return sb.toString();
+	}
+	public static String byteArrayToHexString(byte[] bytes) {
+		StringBuilder sb = new StringBuilder();
+		byteArrayToHexString(sb, bytes);
 		return sb.toString();
 	}
 }

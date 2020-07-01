@@ -21,8 +21,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
 import chatclient.Connection;
-import chatclient.log.Log;
-import chatclient.log.LogType;
 
 public class Hash {
 	public Hash(Connection con){

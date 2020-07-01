@@ -15,31 +15,39 @@
  */
 
 package chatclient.lib;
+
 import java.io.IOException;
-//import java.lang.Error;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Base64;
 
 import chatclient.Connection;
+import chatclient.Connections;
 import chatclient.log.Log;
 import chatclient.log.LogType;
+
 @SuppressWarnings("serial")
 public class ConnectionError extends Error {
 
-	public ConnectionError(byte[] messageBytes, Connection con) {
-		/*Tries to close the socket*/
-		try {
-			con.getSocket().close();
-		} catch (IOException e) {
-			e.printStackTrace();
+	public ConnectionError(Connection con, ErrorType errorType) {
+		allways(con);
+		switch(errorType) {
+		case INVALID_PUB_KEY:
+			Log.log(new String[] {
+					con.getIP_PORT()
+			}, LogType.INVALID_PUB_KEY);
+			break;
+		case GENERAL_IO_ERROR:
+			Log.log(new String[] {
+					con.getIP_PORT()
+			}, LogType.GENERAL_IO_ERROR);
+			break;
+		case TEST_STRING_DEC_FAILED:
+			Log.log(new String[] {
+					con.getIP_PORT()
+			}, LogType.TEST_STING_DECRYPTION_FAILED);
+		default:
+			throw new IllegalArgumentException();
 		}
-		/*Prints out connection name if defined and last message*/
-		System.out.println("An Exception occured in Connection: "+
-				((con.getOtherName().isEmpty())?"Undefinded Name":con.getOtherName())+
-				"\n"+Arrays.toString(messageBytes)+"\n"+
-				new String(messageBytes,StandardCharsets.UTF_8));
-	}
+	}	
 	/*Case for invalid Hash*/
 	public ConnectionError(byte[] calcHash, byte[] sendHash, byte[] messageContents, Connection con) {
 		allways(con);
@@ -47,8 +55,8 @@ public class ConnectionError extends Error {
 		Log.log(new String[] {
 				con.getIP_PORT(),
 				con.getOtherName(),
-				new String(Base64.getEncoder().encode(calcHash), StandardCharsets.UTF_8),
-				new String(Base64.getEncoder().encode(sendHash), StandardCharsets.UTF_8),
+				ByteConverter.byteArrayToHexString(calcHash),
+				ByteConverter.byteArrayToHexString(sendHash),
 				new String(messageContents, StandardCharsets.UTF_8)
 		}, LogType.HASH_INVALID);
 	}
@@ -63,6 +71,7 @@ public class ConnectionError extends Error {
 		}, LogType.HEADER_INVALID);
 	}
 	private void allways(Connection con) {
+		con.abortSetup();
 		/*Tries to close the socket*/
 		try {
 			con.getSocket().close();
@@ -70,5 +79,7 @@ public class ConnectionError extends Error {
 		}	
 		/*Stop the thread through an interrupt*/
 		con.interrupt();
+		/*Remove this connection from the list of available connections*/
+		Connections.remove(con);
 	}
 }	

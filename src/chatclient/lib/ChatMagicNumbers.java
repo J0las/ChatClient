@@ -32,4 +32,5 @@ public class ChatMagicNumbers{
 	/*The teststring could not be decrypted*/
 	public final static byte ENC_ERROR				= (byte)(0xE0);
 	public final static byte ENC_SUCCESS			= (byte)(0xF0); //Teststring decryption succeeded
+	public final static byte CLOSE_CONNECTION		= (byte)(0xFF);
 }
