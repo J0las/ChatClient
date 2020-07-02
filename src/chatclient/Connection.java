@@ -206,7 +206,7 @@ public class Connection extends Thread {
 
     /************************************************/
     /*	                                            */
-    /* Functions for get new messages: */
+    /* Functions for get new messages:              */
     /* 	                                       		*/
     /************************************************/
 
@@ -253,7 +253,7 @@ public class Connection extends Thread {
 
     /************************************************/
     /*	                                            */
-    /* Functions for primitive io: */
+    /* Functions for primitive io:                  */
     /* 	                                       		*/
     /************************************************/
 
@@ -275,7 +275,7 @@ public class Connection extends Thread {
 
     /***************************************************************************/
     /*	                                                                       */
-    /* Functions to exchange AES keys using the diffie hellman algorithm */
+    /* Functions to exchange AES keys using the diffie hellman algorithm       */
     /* 	                                       		                           */
     /***************************************************************************/
 
@@ -441,7 +441,7 @@ public class Connection extends Thread {
 
     /************************************************/
     /*	                                            */
-    /* Functions to verify the exchanged AES key */
+    /* Functions to verify the exchanged AES key    */
     /* 	                                       		*/
     /************************************************/
 
@@ -482,7 +482,7 @@ public class Connection extends Thread {
 
     /************************************************/
     /*	                                            */
-    /* Functions to exchange encrypted names: */
+    /* Functions to exchange encrypted names:       */
     /* 	                                       		*/
     /************************************************/
 
@@ -534,7 +534,7 @@ public class Connection extends Thread {
 
     /*********************************************/
     /*                                           */
-    /* Functions to send / receive messages */
+    /* Functions to send / receive messages      */
     /*                                           */
     /*********************************************/
 
@@ -592,7 +592,7 @@ public class Connection extends Thread {
 
     /*********************************************/
     /*                                           */
-    /* Functions to verify / decode messages */
+    /* Functions to verify / decode messages     */
     /*                                           */
     /*********************************************/
 
@@ -611,7 +611,7 @@ public class Connection extends Thread {
 
     /*********************************************/
     /*                                           */
-    /* Functions to close this connection */
+    /* Functions to close this connection        */
     /*                                           */
     /*********************************************/
 
@@ -637,7 +637,7 @@ public class Connection extends Thread {
 
     /***************/
     /*             */
-    /* Getters */
+    /* Getters     */
     /*             */
     /***************/
 
