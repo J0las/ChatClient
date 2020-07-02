@@ -37,7 +37,7 @@ class ShutDownHandler extends Thread {
 		System.out.println("Closing existing connections");
 		Connection[] cons = Connections.toArray();
 		for(Connection con : cons) {
-			con.closeConnection();
+			con.abortSetup();
 		}
 	}
 }

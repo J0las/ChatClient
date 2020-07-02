@@ -39,6 +39,7 @@ public class Log {
 	private static final int MESSAGE_CONTENTS = 2;
 	private static final int CALC_HASH = 2;
 	private static final int SEND_HEADER = 2;
+	private static final int MESSAGE_LENGTH = 2;
 	private static final int SEND_HASH = 3;
 	private static final int EXPECTED_HEADER = 3;
 	private static final int CORRUPTED_MESSAGE = 4;

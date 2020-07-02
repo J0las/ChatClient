@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
-import java.util.Scanner;
 
 import javax.swing.JOptionPane;
 
@@ -28,10 +27,11 @@ import chatclient.lib.ConnectionError;
 import chatclient.log.Log;
 
 public class Launcher {
+	
 	private static Thread 	server;
 	private static String 	name 	= "Johan";
 	private static Client client	= new Client(name);
-	private static Scanner sc = new Scanner(System.in);
+	
 	public static void main(String[] args) throws ConnectionError {
 		ensureSingleInstance();
 		Log.init(true);

@@ -22,8 +22,7 @@ import java.net.Socket;
 
 import chatclient.lib.ConnectionError;
 import chatclient.lib.Constants;
-import chatclient.log.Log;
-import chatclient.log.LogType;
+
 /*Server for accepting incoming connections*/
 class Server extends Thread {
 	/*Name of this ChatClient, passed to the other side of the connection*/

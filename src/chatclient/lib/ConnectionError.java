@@ -89,11 +89,6 @@ public class ConnectionError extends Error {
 	}
 	private void allways(Connection con) {
 		con.abortSetup();
-		/*Tries to close the socket*/
-		try {
-			con.getSocket().close();
-		} catch (IOException e) {
-		}	
 		/*Stop the thread through an interrupt*/
 		con.interrupt();
 		/*Remove this connection from the list of available connections*/

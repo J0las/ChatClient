@@ -75,7 +75,7 @@ class Client {
 				con = new Connection(
 						new Socket(ip,
 								Constants.STANDARD_PORT),
-						"Neue", true);
+						name, true);
 						con.start();
 				Connections.add(con);
 			} catch (IOException e) {
