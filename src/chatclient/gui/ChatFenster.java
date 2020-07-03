@@ -30,13 +30,15 @@ import javax.swing.JLabel;
 import javax.swing.JFormattedTextField;
 
 import javax.swing.text.MaskFormatter;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 @SuppressWarnings("serial")
 public class ChatFenster extends JFrame {
 
   private JPanel contentPane;
-  private JFormattedTextField ip_feld;
- // private MaskFormatter mf = new MaskFormatter("###.###.###.###"); 
+  public JFormattedTextField ip_feld;
+  public JButton connectButton;
 
   /**
    * Launch the application.
@@ -67,9 +69,9 @@ public class ChatFenster extends JFrame {
     contentPane.setLayout(null);
     setResizable(false);
     
-    JButton connectbutton = new JButton("Connect");
-    connectbutton.setBounds(293, 184, 141, 77);
-    contentPane.add(connectbutton);
+    connectButton = new JButton("Connect");
+    connectButton.setBounds(293, 184, 141, 77);
+    contentPane.add(connectButton);
     
     JLabel ip_anweisung = new JLabel("IP-Adresse des Empf\u00E4ngers:");
     ip_anweisung.setBounds(10, 184, 273, 38);
