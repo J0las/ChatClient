@@ -14,29 +14,41 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/*
+ *  This class is responsible for shutting down the ServerSocket and all open Connections
+ *  on program termination
+ */
+
 package chatclient;
 
 import java.io.IOException;
-import java.net.ServerSocket;
-/*Safely shuts down the server and open connections on program termination*/
+import chatclient.log.Log;
+import chatclient.log.LogType;
+
 class ShutDownHandler extends Thread {
-	private ServerSocket server;
-	ShutDownHandler(ServerSocket server){
+    /*Stores the server object for eventual closing*/
+	private Server server;
+	
+	/*Constructor stores the passed Server object*/
+	ShutDownHandler(Server server){
 		this.server = server;
 	}
+	
+	/*Runs the Thread to shutdown the open connections and the server*/
 	@Override
 	public void run() {
 		/*Closes the server*/
-		System.out.println("Closing server");
 		try {
-			server.close();
+			server.getServerSocket().close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		/*Closes all open connections*/
-		System.out.println("Closing existing connections");
+		server.interrupt();
+		Log.log(new String[0], LogType.CLOSED_SERVER);
+		/*Get all current connections*/
 		Connection[] cons = Connections.toArray();
 		for(Connection con : cons) {
+		    /*Close the selected connection*/
 			con.abortSetup();
 		}
 	}

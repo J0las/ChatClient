@@ -33,7 +33,7 @@ public class Launcher {
 	private static Client client	= new Client(name);
 	
 	public static void main(String[] args) throws ConnectionError {
-		ensureSingleInstance();
+	    ensureSingleInstance();
 		Log.init(true);
 		/*Creates a server with the ChatClientName*/
 		server = new Server(name);

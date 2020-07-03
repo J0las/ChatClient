@@ -28,17 +28,12 @@ import chatclient.log.LogType;
 public class ConnectionError extends Error {
 	
 	public ConnectionError(Connection con, ErrorType errorType) {
-		allways(con);
+		always(con);
 		switch(errorType) {
 		case PUB_KEY_INVALID:
 			Log.log(new String[] {
 					con.getIP_PORT()
 				}, LogType.PUB_KEY_INVALID);
-			break;
-		case GENERAL_IO_ERROR:
-			Log.log(new String[] {
-					con.getIP_PORT()
-				}, LogType.GENERAL_IO_ERROR);
 			break;
 		case TEST_STRING_DEC_FAILED:
 			Log.log(new String[] {
@@ -47,10 +42,17 @@ public class ConnectionError extends Error {
 		default:
 			throw new IllegalArgumentException();
 		}
-	}	
+	}
+	public ConnectionError(IOException e, Connection con) {
+	    always(con);
+	    Log.log(new String[] {
+                con.getIP_PORT(),
+                e.getMessage()
+            }, LogType.GENERAL_IO_ERROR);
+	}
 	/*Case for invalid Hash*/
 	public ConnectionError(byte[] calcHash, byte[] sendHash, byte[] messageContents, Connection con) {
-		allways(con);
+		always(con);
 		/*Log the event*/
 		Log.log(new String[] {
 				con.getIP_PORT(),
@@ -62,7 +64,7 @@ public class ConnectionError extends Error {
 	}
 	/*Case for an invalid header*/
 	public ConnectionError(byte sendHeader, byte expectedHeader, Connection con) {
-		allways(con);
+		always(con);
 		/*Log the event*/
 		Log.log(new String[] {
 				con.getIP_PORT(),
@@ -73,7 +75,7 @@ public class ConnectionError extends Error {
 	}
 	/*Case for an invalid message length*/
 	public ConnectionError(byte[] rawMessage, Connection con) {
-		allways(con);
+		always(con);
 			Log.log(new String[] {
 					con.getIP_PORT(),
 					ByteConverter.byteArrayToHexString(rawMessage)
@@ -81,13 +83,13 @@ public class ConnectionError extends Error {
 	}
 	/*Case for an invalid base64 encoding of an recieved message*/
 	public ConnectionError(String rawMessage, Connection con) {
-		allways(con);
+		always(con);
 		Log.log(new String[] {
 				con.getIP_PORT(),
 				rawMessage
 		}, LogType.BASE64_ENCODING_INVALID);
 	}
-	private void allways(Connection con) {
+	private void always(Connection con) {
 		con.abortSetup();
 		/*Stop the thread through an interrupt*/
 		con.interrupt();
