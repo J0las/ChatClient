@@ -164,7 +164,7 @@ public class Connection extends Thread {
             /* Create an scanner for easy input */
             sc = new Scanner(socket.getInputStream(), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            throw new ConnectionError(this, ErrorType.GENERAL_IO_ERROR);
+            throw new ConnectionError(e, this);
         }
         /* Branch if the connection was opened from this ChatClient */
         if (openedConnection) {
@@ -229,6 +229,7 @@ public class Connection extends Thread {
         } catch (NoSuchElementException | IllegalStateException e) {
             return;
         }
+        System.out.println("CLOSE");
     }
 
     /*
@@ -492,15 +493,21 @@ public class Connection extends Thread {
             byte[] decMessage = crypto.cryptoOperation(rawMessage, CryptoModes.DECRYPT);
             /*Allocate a buffer to store the decrypted messae in the expected format*/
             byte[] toHash = new byte[decMessage.length + Constants.HEADER_SIZE];
-            /*COpy the decrypted message into the new buffer*/
+            /*Copy the decrypted message into the new buffer*/
             System.arraycopy(decMessage, 0, toHash, Constants.CHECKSUM_OFFSET, decMessage.length);
+            /*Validate the hash*/
             hash.hash(toHash, HashModes.VALIDATE_HASH);
+            /*Check if the correct byte sequence was received*/
             if (Arrays.equals(Arrays.copyOfRange(toHash, Constants.MESSAGE_OFFSET, toHash.length),
                     Constants.TEST_BYTES)) {
+                /*If they match send the success header*/
                 sendHeader(ChatMagicNumbers.ENC_SUCCESS);
+                /*Wait for the matching response*/
                 checkHeader(ChatMagicNumbers.SWITCH_TO_ENC_MODE);
             } else {
+                /*If they do not match send the error header*/
                 sendHeader(ChatMagicNumbers.ENC_ERROR);
+                /*Abort the setup of this connection*/
                 throw new ConnectionError(this, ErrorType.TEST_STRING_DEC_FAILED);
             }
         }
@@ -620,16 +627,20 @@ public class Connection extends Thread {
     /* Functions to verify / decode messages     */
     /*                                           */
     /*********************************************/
-
+    
+    /*Checks if the received message conforms to the minimum size of a message*/
     private void checkMessageFormat(byte[] rawMessage) throws ConnectionError {
         if (rawMessage.length <= Constants.HEADER_SIZE + Constants.CHECKSUM_SIZE)
             throw new ConnectionError(rawMessage, this);
     }
-
+    
+    /*decodes the BASE64 encoded String to raw bytes*/
     private byte[] decodeBase64(String message) {
         try {
             return Base64.getDecoder().decode(message.getBytes(StandardCharsets.UTF_8));
+        /*Catch a exception thrown if the BASE64 encoding is invalid*/
         } catch (IllegalArgumentException e) {
+            /*Close the connection*/
             throw new ConnectionError(message, this);
         }
     }
@@ -639,11 +650,15 @@ public class Connection extends Thread {
     /* Functions to close this connection        */
     /*                                           */
     /*********************************************/
-
+    
+    /*shuts down the connection in a predictable way*/
     public void abortSetup() {
+        /*Notifies the other ChatClient that this connection will be terminated*/
         sendHeader(ChatMagicNumbers.CLOSE_CONNECTION);
-        sc.close();
+        /*Close the connection*/
         closeConnection();
+        /*Close the scanner*/
+        sc.close();
     }
 
     /* Closes the socket */
@@ -666,10 +681,6 @@ public class Connection extends Thread {
     /*             */
     /***************/
 
-    public Socket getSocket() {
-        return this.socket;
-    }
-
     /* Returns the name of the other ChatClient */
     public String getOtherName() {
         return this.otherName;
@@ -687,6 +698,7 @@ public class Connection extends Thread {
         return closed;
     }
 
+    /*Return the IP and port of this connection in a formated string*/
     public String getIP_PORT() {
         return socket.getInetAddress().getHostAddress() + "/" + socket.getPort();
     }
@@ -700,6 +712,7 @@ public class Connection extends Thread {
         return "Connection: " + otherName + " to ip: " + socket.getInetAddress().getHostAddress() + ":"
                 + socket.getLocalPort();
     }
+    
     /* Tmp */
 
     void getNewMessages() {

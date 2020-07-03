@@ -26,20 +26,23 @@ import java.time.format.DateTimeFormatter;
 
 import chatclient.lib.ByteConverter;
 import chatclient.lib.ChatMagicNumbers;
+import chatclient.lib.Constants;
 
 public class Log {
 	private static boolean setUp = false;
 	private static final int IP_PORT = 0;
 	private static final int IP = 0;
+	private static final int CLASS_NAME = 0;
+	private static final int ERROR_MESSAGE = 0;
 	private static final int OTHER_NAME = 1;
 	private static final int AES_KEY_HASH = 1;
 	private static final int HEX_MESSAGE = 1;
 	private static final int RAW_MESSAGE = 1;
+	private static final int EXCEPTION_MESSAGE = 1;
 	private static final int OWN_NAME = 2;
 	private static final int MESSAGE_CONTENTS = 2;
 	private static final int CALC_HASH = 2;
 	private static final int SEND_HEADER = 2;
-	private static final int MESSAGE_LENGTH = 2;
 	private static final int SEND_HASH = 3;
 	private static final int EXPECTED_HEADER = 3;
 	private static final int CORRUPTED_MESSAGE = 4;
@@ -69,7 +72,7 @@ public class Log {
 	}
 	
 	public static void log(String[] args, LogType logType) {
-		if(!setUp) System.exit(0);
+		if(!setUp) System.exit(1);
 		if(args == null) throw new IllegalArgumentException();
 		StringBuilder sb = new StringBuilder();
 		sb.append(logType.getLogLevel().getLogLevel());
@@ -172,9 +175,11 @@ public class Log {
 			sb.append(" because of an invalid public Key");
 			break;
 		case GENERAL_IO_ERROR:
-			if(args.length != 1) throw new IllegalArgumentException();
+			if(args.length != 2) throw new IllegalArgumentException();
 			sb.append("A general io error has occurred in connection: ");
 			sb.append(args[IP_PORT]);
+			sb.append(" message: ");
+			sb.append(args[EXCEPTION_MESSAGE]);
 			break;
 		case UNREACHABLE_IP:
 			if(args.length != 1) throw new IllegalArgumentException();
@@ -194,8 +199,29 @@ public class Log {
 			sb.append(args[IP_PORT]);
 			sb.append(" rawmessage: ");
 			sb.append(args[RAW_MESSAGE]);
+			break;
+		case MULTIPLE_OBJECT_INSTANCE:
+		    sb.append("Tried to create a second instance of an object that was already created. Class name: ");
+		    sb.append(args[CLASS_NAME]);
+		    break;
+		case FAILED_TO_CREATE_SERVER:
+		    if(args.length != 1) throw new IllegalArgumentException();
+		    sb.append("Failed to create server on port: ");
+		    sb.append(Constants.STANDARD_PORT);
+		    sb.append(" error mesage: ");
+		    sb.append(args[ERROR_MESSAGE]);
+		    break;
+		case CREATED_SERVER:
+            sb.append("Created server on port: ");
+            sb.append(Constants.STANDARD_PORT);
+            break;
+		case CLOSED_SERVER:
+		    sb.append("Closed server on port: ");
+		    sb.append(Constants.STANDARD_PORT);
+		    break;
 		default:
 			sb.append("Illegal arguments pased!");
+			sb.append(logType);
 			System.err.println(sb.toString());
 			throw new IllegalArgumentException();
 		}

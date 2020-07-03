@@ -14,19 +14,36 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/*
+ *  This class stores all established connection in a central storage
+ *  allowing access from multiple threads to store remove or get a 
+ *  array of the connection 
+ */
+
 package chatclient;
 
 import java.util.Vector;
 
-/*Static class for storing connections*/
 public class Connections {
+    
+    /*
+     *  Vector for storing the connections
+     * 
+     *  Using vector instead of arraylist as vector is thread safe
+     */
 	private final static Vector<Connection> connections= new Vector<Connection>();
+	
+	/*Adds a connection to the vector*/
 	public static void add(Connection con) {
 		connections.add(con);
 	}
+	
+	/*Removes a connection from the vector*/
 	public static void remove(Connection con) {
 		connections.remove(con);
 	}
+	
+	/*Returns all currently stored connections as an array*/
 	public static Connection[] toArray() {
 		return connections.toArray(new Connection[] {});
 	}

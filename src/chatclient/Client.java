@@ -49,6 +49,7 @@ class Client {
 		printNewMessages(c[0]);
 		printNewMessages(c[1]);
 		printNewMessages(c[0]);
+		Runtime.getRuntime().exit(0);
 	}
 	private void printNewMessages(Connection con) throws ConnectionError {
 		if(con.isClosed()) Connections.remove(con);
@@ -79,7 +80,7 @@ class Client {
 						con.start();
 				Connections.add(con);
 			} catch (IOException e) {
-				throw new ConnectionError(con, ErrorType.GENERAL_IO_ERROR);
+				throw new ConnectionError(e, con);
 			}
 	}
 }

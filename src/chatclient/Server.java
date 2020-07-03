@@ -14,46 +14,73 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/*
+ *  This class is used for accepting incoming new connections.
+ *  A Thread is used as server.accept() blocks until a new connection
+ *  can be returned and program execution would halt.
+ */
+
 package chatclient;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import chatclient.lib.ComponendAlreadyRunningError;
 import chatclient.lib.ConnectionError;
 import chatclient.lib.Constants;
+import chatclient.log.Log;
+import chatclient.log.LogType;
 
-/*Server for accepting incoming connections*/
-class Server extends Thread {
+public class Server extends Thread {
 	/*Name of this ChatClient, passed to the other side of the connection*/
 	private String name="";
+	/*ServerSocket object for accepting new connections*/
 	ServerSocket server;
+	/*boolean to check if this class of object has been constructed already*/
+	private static volatile boolean alreadyRunning = false;
+	
+	/*Constructor sets up this server*/
 	Server(String name){
+	    if(alreadyRunning) throw new ComponendAlreadyRunningError(this);
+	    alreadyRunning = true;
 		/*Sets the name of the server*/
-		this.name=name;
+		this.name = name;
 	}
-	/*Starts the server*/
+	
+	/*Starts the server thread*/
 	@Override
 	public void run() {
+	    /*Try to create the server*/
 		try {
 			server = new ServerSocket(Constants.STANDARD_PORT);
 		} catch (IOException e) {
-			e.printStackTrace();
-		}/*Adds a shutdownhook to safely close the server on program termination*/
-		Runtime.getRuntime().addShutdownHook(new ShutDownHandler(server));
-		System.out.println("Started server");
-		/*Loop for accepting new connections*/
-		while(true) {
+		    /*Log the exception*/
+			Log.log(new String[] {
+			        e.getMessage()
+			}, LogType.FAILED_TO_CREATE_SERVER);
+			/*Terminate the program*/
+			System.exit(1);
+		}
+		/*Log the successful creation of the server*/
+		Log.log(new String[0], LogType.CREATED_SERVER);
+		/*Adds a shutdownhook to safely close the server on program termination*/
+		Runtime.getRuntime().addShutdownHook(new ShutDownHandler(this));
+		/*Loop for accepting new connections until thread is interupted*/
+		while(!isInterrupted()) {
 			try {
-				/*Logs the incoming connection*/
+			    /*Accept a incoming connections socket*/
 				Socket s = server.accept();
+				/*create a connection object with the accepted socket*/
 				Connection con = new Connection(s,name,false);
+				/*Start the Thread of this connection to get the messages*/
 				con.start();
 				/*Adds the new connection in accepting configuration to the shared ArrayList*/
 				Connections.add(con);
-			} catch (ConnectionError | IOException e) {
-				e.printStackTrace();
-			}
+			} catch (ConnectionError | IOException e) {}
 		}
 	}	
+	ServerSocket getServerSocket() {
+	    return server;
+	}
 }
