@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import chatclient.Launcher;
+import chatclient.lib.ConnectionCreator;
 import chatclient.log.Log;
 
 public class Gui {
@@ -21,6 +22,11 @@ public class Gui {
 		    		if(af.logging_box.isEnabled() == true) {
 		    			Log.init(true);
 		    		}
+		    		cf.connectButton.addActionListener(new ActionListener() {
+		    	    	public void actionPerformed(ActionEvent e) {
+		    	    		ConnectionCreator.createConnection(cf.ip_feld.getText());
+		    	    	}
+		    	    });
 		    }
 	    });
 	}
