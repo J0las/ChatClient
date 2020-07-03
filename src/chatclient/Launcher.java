@@ -23,6 +23,7 @@ import java.nio.channels.FileLock;
 
 import javax.swing.JOptionPane;
 
+import chatclient.gui.AnmeldeFenster;
 import chatclient.lib.ConnectionError;
 import chatclient.log.Log;
 
@@ -34,6 +35,8 @@ public class Launcher {
 	
 	public static void main(String[] args) throws ConnectionError {
 	    ensureSingleInstance();
+	    AnmeldeFenster frame = new AnmeldeFenster();
+        frame.setVisible(true);
 		Log.init(true);
 		/*Creates a server with the ChatClientName*/
 		server = new Server(name);
