@@ -31,6 +31,7 @@ import javax.swing.JFormattedTextField;
 
 import javax.swing.text.MaskFormatter;
 
+@SuppressWarnings("serial")
 public class ChatFenster extends JFrame {
 
   private JPanel contentPane;
@@ -73,7 +74,6 @@ public class ChatFenster extends JFrame {
     JLabel ip_anweisung = new JLabel("IP-Adresse des Empf\u00E4ngers:");
     ip_anweisung.setBounds(10, 184, 273, 38);
     contentPane.add(ip_anweisung);
-    
     try {
     	MaskFormatter mf = new MaskFormatter("###.###.###.###");
     	ip_feld = new JFormattedTextField(mf);

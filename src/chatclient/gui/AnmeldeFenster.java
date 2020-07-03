@@ -27,6 +27,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JCheckBox;
 
+@SuppressWarnings("serial")
 public class AnmeldeFenster extends JFrame {
 
   private JPanel contentPane;
