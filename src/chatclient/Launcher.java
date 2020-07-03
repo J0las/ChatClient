@@ -28,15 +28,15 @@ import chatclient.log.Log;
 
 public class Launcher {
 	
+	public static String name;
 	private static Thread 	server;
-	private static String 	name 	= "Johan";
 	private static Client client	= new Client(name);
 	
 	public static void main(String[] args) throws ConnectionError {
 		ensureSingleInstance();
 		Log.init(true);
-		/*Creates a server with the ChatClientName "Johan"*/
-		server = new Server("Johan");
+		/*Creates a server with the ChatClientName*/
+		server = new Server(name);
 		/*Starts the server thread*/
 		server.start();
 		client.run();
@@ -69,4 +69,5 @@ public class Launcher {
                 JOptionPane.ERROR_MESSAGE);
 		System.exit(1);
 	}
+	
 }
