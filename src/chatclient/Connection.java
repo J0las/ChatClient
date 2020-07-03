@@ -135,7 +135,7 @@ public class Connection extends Thread {
     SimpleAttributeSet MessageColor;
     StyledDocument doc;
 
-    Connection(Socket socket, String ownName, boolean openedConnection) throws ConnectionError {
+    public Connection(Socket socket, String ownName, boolean openedConnection) throws ConnectionError {
         /* Setup objects */
         this.hash = new Hash(this);
         this.socket = socket;

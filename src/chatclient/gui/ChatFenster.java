@@ -24,14 +24,14 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
 import chatclient.Launcher;
+import chatclient.lib.ConnectionCreator;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JFormattedTextField;
 
 import javax.swing.text.MaskFormatter;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
+
 
 @SuppressWarnings("serial")
 public class ChatFenster extends JFrame {
@@ -81,6 +81,7 @@ public class ChatFenster extends JFrame {
     	ip_feld = new JFormattedTextField(mf);
         ip_feld.setBounds(20, 224, 263, 29);
     	contentPane.add(ip_feld);
+    	connectButton.addActionListener(new ConnectionCreator(ip_feld));
     } catch(ParseException e) {
     	e.printStackTrace();
     }
