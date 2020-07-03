@@ -418,24 +418,34 @@ public class Connection extends Thread {
         }
     }
 
+    /*Sends the encoded AES parameters needed for crypto operations to the other ChatClient*/
     private void sendEncodedParams(byte[] encodedAES_Params) throws ConnectionError {
+        /*Allocate a buffer for the whole message*/
         byte[] message = new byte[Constants.HEADER_SIZE + Constants.CHECKSUM_SIZE + encodedAES_Params.length];
+        /*Set the header to the correct value*/
         message[Constants.HEADER_OFFSET] = ChatMagicNumbers.ENCODED_PARAMS;
+        /*Copy the SHA256 over the encoded parameters into the buffer*/
         System.arraycopy(hash.hash(encodedAES_Params, HashModes.CREATE_HASH), 0, message, Constants.CHECKSUM_OFFSET,
                 Constants.CHECKSUM_SIZE);
+        /*Copy the encoded parameters into the buffer*/
         System.arraycopy(encodedAES_Params, 0, message, Constants.MESSAGE_OFFSET, encodedAES_Params.length);
+        /*Encode the buffer with BASE64 and send it*/
         out.println(new String(Base64.getEncoder().encode(message), StandardCharsets.UTF_8));
-
     }
-
+    
+    /*Recieve the encoded AES parameters needed for crypto operations from the other ChatClient*/
     private byte[] recieveEncodedParams() throws ConnectionError {
-        while (!sc.hasNextLine())
-            ;
+        /*Wait for the message to arrive*/
+        while (!sc.hasNextLine());
+        /*Decode the BASE64 massage to raw bytes*/
         byte[] rawMessage = decodeBase64(sc.nextLine());
         checkMessageFormat(rawMessage);
+        /*Check if the header byte is as expected*/
         if (rawMessage[Constants.HEADER_OFFSET] != ChatMagicNumbers.ENCODED_PARAMS)
             throw new ConnectionError(rawMessage[Constants.HEADER_OFFSET], ChatMagicNumbers.ENCODED_PARAMS, this);
+        /*Verify the hash over the parameters*/
         hash.hash(rawMessage, HashModes.VALIDATE_HASH);
+        /*Return the extracted parameters*/
         return Arrays.copyOfRange(rawMessage, Constants.MESSAGE_OFFSET, rawMessage.length);
     }
 
@@ -445,28 +455,44 @@ public class Connection extends Thread {
     /* 	                                       		*/
     /************************************************/
 
-    void checkEncryption(boolean opened) {
+    /*Checks if the exchanged AES key is the same for both ChatClients*/
+    void checkEncryption(boolean opened) throws ConnectionError{
+        /* Branch if the connection was opened from this ChatClient */
         if (opened) {
+            /*Allocate a buffer for the parts of the message to be encrypted*/
             byte[] toEnc = new byte[Constants.HEADER_SIZE + Constants.CHECKSUM_SIZE + Constants.TEST_BYTES.length];
+            /*Copy the SHA256 over a static shared sequence of bytes into the buffer*/
             System.arraycopy(hash.hash(Constants.TEST_BYTES, HashModes.CREATE_HASH), 0, toEnc,
                     Constants.CHECKSUM_OFFSET, Constants.CHECKSUM_SIZE);
+            /*Copy the static shared sequence of bytes into the buffer*/
             System.arraycopy(Constants.TEST_BYTES, 0, toEnc, Constants.MESSAGE_OFFSET, Constants.TEST_BYTES.length);
             byte[] encMessage = crypto.cryptoOperation(toEnc, CryptoModes.ENCRYPT);
+            /*Allocate a new buffer for the whole encrypted message to account for padding*/
             byte[] message = new byte[Constants.HEADER_SIZE + encMessage.length];
+            /*Set the header byte to the correct value*/
             message[Constants.HEADER_OFFSET] = ChatMagicNumbers.ENC_TEST_STRING;
+            /*Copy the encrypted message into the new buffer*/
             System.arraycopy(encMessage, 0, message, Constants.CHECKSUM_OFFSET, encMessage.length);
+            /*Send the buffer as a BASE64 encoded string to the other ChatClient*/
             out.println(new String(Base64.getEncoder().encode(message), StandardCharsets.UTF_8));
+            /*Check the response header*/
             checkHeader(ChatMagicNumbers.ENC_SUCCESS);
+            /*If the previous check succeeded signal the other ChatClient to switch to encrypted communication*/
             sendHeader(ChatMagicNumbers.SWITCH_TO_ENC_MODE);
+        /* Branch if the connection was opened from this ChatClient */    
         } else {
-            while (!sc.hasNextLine())
-                ;
+            /*Wait for the message to arrive*/
+            while (!sc.hasNextLine());
+            /*Decode the BASE64 massage to raw bytes*/
             byte[] rawMessage = decodeBase64(sc.nextLine());
+            /*Check if the header byte is as expected*/
             if (rawMessage[Constants.HEADER_OFFSET] != ChatMagicNumbers.ENC_TEST_STRING)
                 throw new ConnectionError(rawMessage[Constants.HEADER_OFFSET], ChatMagicNumbers.ENC_TEST_STRING, this);
+            /*Decrypt the message*/
             byte[] decMessage = crypto.cryptoOperation(rawMessage, CryptoModes.DECRYPT);
+            /*Allocate a buffer to store the decrypted messae in the expected format*/
             byte[] toHash = new byte[decMessage.length + Constants.HEADER_SIZE];
-            Arrays.fill(toHash, (byte) (0));
+            /*COpy the decrypted message into the new buffer*/
             System.arraycopy(decMessage, 0, toHash, Constants.CHECKSUM_OFFSET, decMessage.length);
             hash.hash(toHash, HashModes.VALIDATE_HASH);
             if (Arrays.equals(Arrays.copyOfRange(toHash, Constants.MESSAGE_OFFSET, toHash.length),
@@ -511,8 +537,7 @@ public class Connection extends Thread {
     /* Recieves the name of the other ChatClient and stores it in otherName */
     private void recieveName() throws ConnectionError {
         /* Wait for the next message */
-        while (!sc.hasNextLine())
-            ;
+        while (!sc.hasNextLine());
         /* Decode the incoming message from Base64 to raw bytes */
         byte[] rawMessage = decodeBase64(sc.nextLine());
         checkMessageFormat(rawMessage);
