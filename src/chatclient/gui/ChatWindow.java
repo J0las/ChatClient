@@ -27,6 +27,6 @@ class ChatWindow extends JTextPane {
 		this.con = con;
 	}
 	Connection getConnection() {
-		return con;
+		return con; //gut
 	}
 }
