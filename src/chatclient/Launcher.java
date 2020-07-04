@@ -40,7 +40,7 @@ public class Launcher {
         while(!loggedIn);
         anmeldeFenster.dispose();
 		/*Creates a server with the ChatClientName*/
-		server = new Server(name);
+		server = new Server();
 		/*Starts the server thread*/
 		server.start();
 		ChatFenster chatFenster = new ChatFenster();

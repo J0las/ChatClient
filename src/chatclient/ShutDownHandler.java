@@ -39,7 +39,7 @@ class ShutDownHandler extends Thread {
 	public void run() {
 		/*Closes the server*/
 		try {
-			server.getServerSocket().close();
+			server.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

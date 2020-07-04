@@ -39,7 +39,7 @@ public class Server extends Thread {
 	private static volatile boolean alreadyRunning = false;
 	
 	/*Constructor sets up this server*/
-	Server(String name){
+	Server(){
 	    if(alreadyRunning) throw new ComponendAlreadyRunningError(this);
 	    alreadyRunning = true;
 	}
@@ -62,7 +62,7 @@ public class Server extends Thread {
 		Log.log(new String[0], LogType.CREATED_SERVER);
 		/*Adds a shutdownhook to safely close the server on program termination*/
 		Runtime.getRuntime().addShutdownHook(new ShutDownHandler(this));
-		/*Loop for accepting new connections until thread is interupted*/
+		/*Loop for accepting new connections until thread is interrupted*/
 		while(!isInterrupted()) {
 			try {
 			    /*Accept a incoming connections socket*/
@@ -76,7 +76,7 @@ public class Server extends Thread {
 			} catch (ConnectionError | IOException e) {}
 		}
 	}	
-	ServerSocket getServerSocket() {
-	    return server;
+	void close() throws IOException {
+	    server.close();
 	}
 }
