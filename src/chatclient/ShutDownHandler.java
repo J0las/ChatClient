@@ -49,7 +49,7 @@ class ShutDownHandler extends Thread {
 		Connection[] cons = Connections.toArray();
 		for(Connection con : cons) {
 		    /*Close the selected connection*/
-			con.abortSetup();
+			con.closeConnectiom();
 		}
 	}
 }

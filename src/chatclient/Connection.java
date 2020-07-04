@@ -74,6 +74,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
@@ -88,6 +89,7 @@ import javax.crypto.KeyAgreement;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.interfaces.DHPublicKey;
 import javax.crypto.spec.DHParameterSpec;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.swing.JTextPane;
 import javax.swing.text.SimpleAttributeSet;
@@ -288,7 +290,7 @@ public class Connection extends Thread {
             byte[] sharedSecret = new byte[0];
             /*
              * This is the AES key both ChatClients will use for encryption and decryption
-             * of their messaages
+             * of their messages
              */
             SecretKeySpec AES_Key;
             /* Branch if the connection was opened from this ChatClient */
@@ -402,12 +404,20 @@ public class Connection extends Thread {
     }
     
     /*Return the AES parameters needed to encrypt or decrypt data*/
-    byte[] setUpCrypto(SecretKeySpec AES_Key) throws InvalidKeyException{
+    byte[] setUpCrypto(SecretKeySpec AES_Key) throws InvalidKeyException, InvalidAlgorithmParameterException{
         try {
             /*Get a Cipher for AES in cipher-block-chaining mode with PKCS5 padding*/
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            /*Initialize the cipher in encryption mode with the exchanged AES key*/
-            cipher.init(Cipher.ENCRYPT_MODE, AES_Key);
+            /*Create a SecureRandom object to generate a random initialization vector*/
+            SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG");
+            /*Allocate a buffer for the initialization vector with the size of an AES block*/
+            byte[] iv = new byte[cipher.getBlockSize()];
+            /*Generate the initialization vector*/
+            secureRandom.nextBytes(iv);
+            /*Pack the initialization vector inside an IvParameterSpec object*/
+            IvParameterSpec ivParams = new IvParameterSpec(iv);
+            /*Initialize the cipher in encryption mode with the exchanged AES key and the generated initialization vector*/
+            cipher.init(Cipher.ENCRYPT_MODE, AES_Key, ivParams);
             /*Extract the parameters and return them*/
             return cipher.getParameters().getEncoded();
         } catch (NoSuchAlgorithmException | NoSuchPaddingException |  IOException  e) {
@@ -457,28 +467,6 @@ public class Connection extends Thread {
     void checkEncryption(boolean opened) throws ConnectionError{
         /* Branch if the connection was opened from this ChatClient */
         if (opened) {
-            /*Allocate a buffer for the parts of the message to be encrypted*/
-            byte[] toEnc = new byte[Constants.HEADER_SIZE + Constants.CHECKSUM_SIZE + Constants.TEST_BYTES.length];
-            /*Copy the SHA256 over a static shared sequence of bytes into the buffer*/
-            System.arraycopy(hash.hash(Constants.TEST_BYTES, HashModes.CREATE_HASH), 0, toEnc,
-                    Constants.CHECKSUM_OFFSET, Constants.CHECKSUM_SIZE);
-            /*Copy the static shared sequence of bytes into the buffer*/
-            System.arraycopy(Constants.TEST_BYTES, 0, toEnc, Constants.MESSAGE_OFFSET, Constants.TEST_BYTES.length);
-            byte[] encMessage = crypto.cryptoOperation(toEnc, CryptoModes.ENCRYPT);
-            /*Allocate a new buffer for the whole encrypted message to account for padding*/
-            byte[] message = new byte[Constants.HEADER_SIZE + encMessage.length];
-            /*Set the header byte to the correct value*/
-            message[Constants.HEADER_OFFSET] = ChatMagicNumbers.ENC_TEST_STRING;
-            /*Copy the encrypted message into the new buffer*/
-            System.arraycopy(encMessage, 0, message, Constants.CHECKSUM_OFFSET, encMessage.length);
-            /*Send the buffer as a BASE64 encoded string to the other ChatClient*/
-            out.println(new String(Base64.getEncoder().encode(message), StandardCharsets.UTF_8));
-            /*Check the response header*/
-            checkHeader(ChatMagicNumbers.ENC_SUCCESS);
-            /*If the previous check succeeded signal the other ChatClient to switch to encrypted communication*/
-            sendHeader(ChatMagicNumbers.SWITCH_TO_ENC_MODE);
-        /* Branch if the connection was opened from this ChatClient */    
-        } else {
             /*Wait for the message to arrive*/
             while (!sc.hasNextLine());
             /*Decode the BASE64 massage to raw bytes*/
@@ -506,7 +494,29 @@ public class Connection extends Thread {
                 sendHeader(ChatMagicNumbers.ENC_ERROR);
                 /*Abort the setup of this connection*/
                 throw new ConnectionError(this, ErrorType.TEST_STRING_DEC_FAILED);
-            }
+            }    
+        /* Branch if the connection was opened from this ChatClient */    
+        } else {
+            /*Allocate a buffer for the parts of the message to be encrypted*/
+            byte[] toEnc = new byte[Constants.HEADER_SIZE + Constants.CHECKSUM_SIZE + Constants.TEST_BYTES.length];
+            /*Copy the SHA256 over a static shared sequence of bytes into the buffer*/
+            System.arraycopy(hash.hash(Constants.TEST_BYTES, HashModes.CREATE_HASH), 0, toEnc,
+                    Constants.CHECKSUM_OFFSET, Constants.CHECKSUM_SIZE);
+            /*Copy the static shared sequence of bytes into the buffer*/
+            System.arraycopy(Constants.TEST_BYTES, 0, toEnc, Constants.MESSAGE_OFFSET, Constants.TEST_BYTES.length);
+            byte[] encMessage = crypto.cryptoOperation(toEnc, CryptoModes.ENCRYPT);
+            /*Allocate a new buffer for the whole encrypted message to account for padding*/
+            byte[] message = new byte[Constants.HEADER_SIZE + encMessage.length];
+            /*Set the header byte to the correct value*/
+            message[Constants.HEADER_OFFSET] = ChatMagicNumbers.ENC_TEST_STRING;
+            /*Copy the encrypted message into the new buffer*/
+            System.arraycopy(encMessage, 0, message, Constants.CHECKSUM_OFFSET, encMessage.length);
+            /*Send the buffer as a BASE64 encoded string to the other ChatClient*/
+            out.println(new String(Base64.getEncoder().encode(message), StandardCharsets.UTF_8));
+            /*Check the response header*/
+            checkHeader(ChatMagicNumbers.ENC_SUCCESS);
+            /*If the previous check succeeded signal the other ChatClient to switch to encrypted communication*/
+            sendHeader(ChatMagicNumbers.SWITCH_TO_ENC_MODE);
         }
     }
 
@@ -649,17 +659,9 @@ public class Connection extends Thread {
     /*********************************************/
     
     /*shuts down the connection in a predictable way*/
-    public void abortSetup() {
+    public void closeConnectiom() {
         /*Notifies the other ChatClient that this connection will be terminated*/
         sendHeader(ChatMagicNumbers.CLOSE_CONNECTION);
-        /*Close the connection*/
-        closeConnection();
-        /*Close the scanner*/
-        sc.close();
-    }
-
-    /* Closes the socket */
-    private void closeConnection() {
         /* Tries to close the socket */
         try {
             socket.close();
@@ -668,6 +670,8 @@ public class Connection extends Thread {
         /* Logs the closing of this connection */
         Log.log(new String[] { socket.getInetAddress().getHostAddress() + " / " + socket.getPort() },
                 LogType.CONNECTION_CLOSED);
+        /*Close the scanner*/
+        sc.close();
         /* sets the closed flag to true */
         closed = true;
     }
