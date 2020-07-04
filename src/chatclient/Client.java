@@ -24,7 +24,6 @@ import java.util.Scanner;
 
 import chatclient.lib.ConnectionError;
 import chatclient.lib.Constants;
-import chatclient.lib.ErrorType;
 import chatclient.lib.UnreachableIPException;
 
 class Client {

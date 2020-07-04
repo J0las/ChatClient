@@ -22,6 +22,7 @@
 package chatclient;
 
 import java.io.IOException;
+
 import chatclient.log.Log;
 import chatclient.log.LogType;
 
@@ -51,5 +52,6 @@ class ShutDownHandler extends Thread {
 		    /*Close the selected connection*/
 			con.closeConnectiom();
 		}
+		Log.close();
 	}
 }

@@ -228,6 +228,13 @@ public class Log {
 		System.err.println(sb.toString());
 	}
 	
+	public static void close() {
+	    setUp = false;
+	    System.err.print(getCurrentDateTime());
+	    System.err.println(" Ended logging");
+	    System.err.close();
+	}
+	
 	private static String getCurrentDateTime() {
 		return LocalDateTime.now().format(DateTimeFormatter.ofPattern("<yyyy-MM-dd | HH:mm:ss>"));
 	}

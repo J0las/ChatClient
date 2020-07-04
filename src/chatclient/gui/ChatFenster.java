@@ -19,18 +19,16 @@ package chatclient.gui;
 import java.awt.EventQueue;
 import java.text.ParseException;
 
+import javax.swing.JButton;
+import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.MaskFormatter;
 
 import chatclient.Launcher;
 import chatclient.lib.ConnectionCreator;
-
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JFormattedTextField;
-
-import javax.swing.text.MaskFormatter;
 
 
 @SuppressWarnings("serial")

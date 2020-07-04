@@ -69,11 +69,16 @@ public class Server extends Thread {
 				Socket s = server.accept();
 				/*create a connection object with the accepted socket*/
 				Connection con = new Connection(s, false);
-				/*Start the Thread of this connection to get the messages*/
+				/*Start the thread of this connection to get the messages*/
 				con.start();
 				/*Adds the new connection in accepting configuration to the shared ArrayList*/
 				Connections.add(con);
-			} catch (ConnectionError | IOException e) {}
+			} catch(ConnectionError e) {
+			    
+			} catch ( IOException e) {
+			    /*Stop this thread*/
+			    return;
+			}
 		}
 	}	
 	void close() throws IOException {
