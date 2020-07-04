@@ -33,8 +33,6 @@ import chatclient.log.Log;
 import chatclient.log.LogType;
 
 public class Server extends Thread {
-	/*Name of this ChatClient, passed to the other side of the connection*/
-	private String name="";
 	/*ServerSocket object for accepting new connections*/
 	ServerSocket server;
 	/*boolean to check if this class of object has been constructed already*/

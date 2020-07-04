@@ -26,7 +26,6 @@ import javax.swing.JFormattedTextField;
 
 import chatclient.Connection;
 import chatclient.Connections;
-import chatclient.Launcher;
 
 public class ConnectionCreator implements ActionListener {
 
