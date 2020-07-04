@@ -28,12 +28,9 @@ import chatclient.lib.ErrorType;
 import chatclient.lib.UnreachableIPException;
 
 class Client {
-	private Scanner sc 	= new Scanner(System.in);
-	private String 	name;
-	Client(String name){
-		this.name = name;
-	}
-	void run() throws ConnectionError{
+	private static Scanner sc 	= new Scanner(System.in);
+	
+	static void run() throws ConnectionError{
 		try {
 		newConnection();
 		} catch (UnreachableIPException e) {
@@ -51,11 +48,11 @@ class Client {
 		printNewMessages(c[0]);
 		Runtime.getRuntime().exit(0);
 	}
-	private void printNewMessages(Connection con) throws ConnectionError {
+	static private void printNewMessages(Connection con) throws ConnectionError {
 		if(con.isClosed()) Connections.remove(con);
 		con.getNewMessages();
 	}
-	void newConnection() throws ConnectionError, UnreachableIPException{
+	static void newConnection() throws ConnectionError, UnreachableIPException{
 		/*Buffer for the raw ip*/
 		byte[] ipBytes = new byte[4];
 		{	
@@ -75,8 +72,7 @@ class Client {
 				if(!ip.isReachable(1000)) throw new UnreachableIPException(ip);
 				con = new Connection(
 						new Socket(ip,
-								Constants.STANDARD_PORT),
-						name, true);
+								Constants.STANDARD_PORT), true);
 						con.start();
 				Connections.add(con);
 			} catch (IOException e) {

@@ -25,24 +25,24 @@ import javax.swing.JOptionPane;
 
 import chatclient.gui.AnmeldeFenster;
 import chatclient.lib.ConnectionError;
-import chatclient.log.Log;
 
 public class Launcher {
 	
 	public static String name;
 	private static Thread 	server;
-	private static Client client	= new Client(name);
+	public static volatile boolean loggedIn = false;
 	
 	public static void main(String[] args) throws ConnectionError {
 	    ensureSingleInstance();
 	    AnmeldeFenster frame = new AnmeldeFenster();
         frame.setVisible(true);
-		Log.init(true);
+        while(!loggedIn);
+        frame.dispose();
 		/*Creates a server with the ChatClientName*/
 		server = new Server(name);
 		/*Starts the server thread*/
 		server.start();
-		client.run();
+		Client.run();
 		}
 	private static void ensureSingleInstance() {
 		final File file = new File(System.getProperty("java.io.tmpdir")+"ChatClient.lock");

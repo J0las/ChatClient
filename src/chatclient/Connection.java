@@ -114,8 +114,6 @@ public class Connection extends Thread {
     private PrintStream out;
     /* Name of the other ChatClient */
     private String otherName = "";
-    /* Name of this ChatClient */
-    private String ownName = "";
     /* scanner for easy input */
     private Scanner sc;
     /* Represents the state of the connection */
@@ -135,12 +133,11 @@ public class Connection extends Thread {
     SimpleAttributeSet MessageColor;
     StyledDocument doc;
 
-    public Connection(Socket socket, String ownName, boolean openedConnection) throws ConnectionError {
+    public Connection(Socket socket, boolean openedConnection) throws ConnectionError {
         /* Setup objects */
         this.hash = new Hash(this);
         this.socket = socket;
         this.input = new LinkedList<String>();
-        this.ownName = ownName;
 
         this.pane = new JTextPane();
         this.pane.setEditable(false);
@@ -521,7 +518,7 @@ public class Connection extends Thread {
 
     /* Sends the name of this ChatClient to the other ChatClient */
     private void sendName() throws ConnectionError {
-        byte[] nameBytes = ownName.getBytes(StandardCharsets.UTF_8);
+        byte[] nameBytes = Launcher.name.getBytes(StandardCharsets.UTF_8);
         /* Allocate a buffer for the hash and name to be encrypted */
         byte[] toEnc = new byte[Constants.HEADER_SIZE + Constants.CHECKSUM_SIZE + nameBytes.length];
         /* Copy the hash into the buffer */

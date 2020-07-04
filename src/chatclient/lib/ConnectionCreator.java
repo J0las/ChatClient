@@ -50,8 +50,7 @@ public class ConnectionCreator implements ActionListener {
             if(!ip.isReachable(1000)) throw new UnreachableIPException(ip);
             Connection con = new Connection(
                                 new Socket(ip,
-                                        Constants.STANDARD_PORT),
-                                Launcher.name, true);
+                                        Constants.STANDARD_PORT), true);
             con.start();
             Connections.add(con);
         } catch (IOException | NumberFormatException | UnreachableIPException e) {

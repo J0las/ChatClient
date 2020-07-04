@@ -17,10 +17,15 @@
 package chatclient.gui;
 
 import java.awt.EventQueue;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+
+import chatclient.Launcher;
+import chatclient.log.Log;
 
 import javax.swing.JTextField;
 import javax.swing.JButton;
@@ -82,5 +87,15 @@ public class AnmeldeFenster extends JFrame {
     logging_box = new JCheckBox("Protokoll");
     logging_box.setBounds(141, 77, 97, 23);
     contentPane.add(logging_box);
+    anmeldebutton.addActionListener(new ActionListener() {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            Launcher.name = username_feld.getText();
+            Log.init(logging_box.isSelected());
+            Launcher.loggedIn = true;   
+        }
+        
+    });
   }
 }

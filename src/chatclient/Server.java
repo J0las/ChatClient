@@ -44,8 +44,6 @@ public class Server extends Thread {
 	Server(String name){
 	    if(alreadyRunning) throw new ComponendAlreadyRunningError(this);
 	    alreadyRunning = true;
-		/*Sets the name of the server*/
-		this.name = name;
 	}
 	
 	/*Starts the server thread*/
@@ -72,7 +70,7 @@ public class Server extends Thread {
 			    /*Accept a incoming connections socket*/
 				Socket s = server.accept();
 				/*create a connection object with the accepted socket*/
-				Connection con = new Connection(s,name,false);
+				Connection con = new Connection(s, false);
 				/*Start the Thread of this connection to get the messages*/
 				con.start();
 				/*Adds the new connection in accepting configuration to the shared ArrayList*/
