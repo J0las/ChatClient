@@ -52,7 +52,7 @@ public class ConnectionCreator implements ActionListener {
                                         Constants.STANDARD_PORT), true);
             con.start();
             Connections.add(con);
-        } catch (IOException | NumberFormatException | UnreachableIPException e) {
+        } catch (IOException | UnreachableIPException | ConnectionError e) {
             return;
         }
     }
