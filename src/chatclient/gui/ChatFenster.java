@@ -29,6 +29,10 @@ import javax.swing.text.MaskFormatter;
 
 import chatclient.Launcher;
 import chatclient.lib.ConnectionCreator;
+import javax.swing.JTextPane;
+import java.awt.Color;
+import chatclient.Connection;
+import chatclient.Connections;
 
 
 @SuppressWarnings("serial")
@@ -37,6 +41,7 @@ public class ChatFenster extends JFrame {
   private JPanel contentPane;
   public JFormattedTextField ip_feld;
   public JButton connectButton;
+  
 
   /**
    * Launch the application.
@@ -80,6 +85,13 @@ public class ChatFenster extends JFrame {
         ip_feld.setBounds(20, 224, 263, 29);
     	contentPane.add(ip_feld);
     	connectButton.addActionListener(new ConnectionCreator(ip_feld));
+    	
+    	JTextPane chattext = new JTextPane();
+    	chattext.setBackground(new Color(255, 255, 255));
+    	chattext.setEditable(false);
+        //chattext.setDocument(Connections.toArray()[0].getDocument());
+    	chattext.setBounds(181, 11, 253, 100);
+    	contentPane.add(chattext);
     } catch(ParseException e) {
     	e.printStackTrace();
     }

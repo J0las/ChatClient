@@ -727,4 +727,8 @@ public class Connection extends Thread {
             return;
         }
     }
+    
+    public StyledDocument getDocument() {
+    	return doc;
+    }
 }
