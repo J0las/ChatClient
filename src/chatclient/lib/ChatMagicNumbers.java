@@ -20,15 +20,14 @@ public class ChatMagicNumbers{
 	public final static byte HELLO 					= 0x0F;	//Send on first connection
 	/*Returned from Server if connection is accepted*/
 	public final static byte ACCEPTED_CONNECTION 	= 0x1F;	
-	public final static byte INIT_DIFFIE_HELLMAN	= 0x2F;	//Initiates the Diffie-Hellman keygen
-	public final static byte PUBLIC_KEY 			= 0x3F;	//Public Key of the sender
-	public final static byte ENCODED_PARAMS			= 0x4F;	//AES-Parameter from the server
+	public final static byte PUBLIC_KEY 			= 0x2F;	//Public Key of the sender
+	public final static byte ENCODED_PARAMS			= 0x3F;	//AES-Parameter from the server
 	/*Contains a known teststring to test the encryption*/
-	public final static byte ENC_TEST_STRING		= 0x5F; 
+	public final static byte ENC_TEST_STRING		= 0x4F; 
 	/*Finalizes the keygen and switches to AES encryption with the generated key*/
-	public final static byte SWITCH_TO_ENC_MODE		= 0x6F;
-	public final static byte CONNECTION_NAME		= (0x7F); //Name of the connection Partner
-	public final static byte ENC_MESSAGE			= (byte)(0x8F); //Encrypted Message
+	public final static byte SWITCH_TO_ENC_MODE		= 0x5F;
+	public final static byte CONNECTION_NAME		= (0x6F); //Name of the connection Partner
+	public final static byte ENC_MESSAGE			= (byte)(0x7F); //Encrypted Message
 	/*The teststring could not be decrypted*/
 	public final static byte ENC_ERROR				= (byte)(0xE0);
 	public final static byte ENC_SUCCESS			= (byte)(0xF0); //Teststring decryption succeeded
