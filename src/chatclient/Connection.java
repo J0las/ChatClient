@@ -659,7 +659,7 @@ public class Connection extends Thread {
     /*********************************************/
     
     /*shuts down the connection in a predictable way*/
-    public void closeConnectiom() {
+    public void closeConnection() {
         /*Notifies the other ChatClient that this connection will be terminated*/
         sendHeader(ChatMagicNumbers.CLOSE_CONNECTION);
         /* Tries to close the socket */

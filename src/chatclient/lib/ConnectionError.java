@@ -90,7 +90,7 @@ public class ConnectionError extends Error {
 		}, LogType.BASE64_ENCODING_INVALID);
 	}
 	private void always(Connection con) {
-		con.closeConnectiom();
+		con.closeConnection();
 		/*Stop the thread through an interrupt*/
 		con.interrupt();
 		/*Remove this connection from the list of available connections*/
