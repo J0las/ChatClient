@@ -22,6 +22,7 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
 
 import javax.swing.JOptionPane;
+import javax.swing.JTextPane;
 
 import chatclient.gui.AnmeldeFenster;
 import chatclient.gui.ChatFenster;
@@ -32,6 +33,7 @@ public class Launcher {
 	public static String name;
 	private static Thread 	server;
 	public static volatile boolean loggedIn = false;
+	public static JTextPane chattext;
 	
 	public static void main(String[] args) throws ConnectionError {
 	    ensureSingleInstance();
