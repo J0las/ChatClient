@@ -72,7 +72,7 @@ public class ChatFenster extends JFrame {
     contentPane.setLayout(null);
     setResizable(false);
     
-    connectButton = new JButton("Connect");
+    connectButton = new JButton("Connect"); //Erstelle den Connectbutton
     connectButton.setBounds(293, 184, 141, 77);
     contentPane.add(connectButton);
     
@@ -85,6 +85,7 @@ public class ChatFenster extends JFrame {
         ip_feld.setBounds(20, 224, 263, 29);
     	contentPane.add(ip_feld);
     	connectButton.addActionListener(new ConnectionCreator(ip_feld));
+    //Erstelle das Textfeld, in der die IP-Adresse eingegeben wird mit der Maske	
     	
     	JTextPane chattext = new JTextPane();
     	chattext.setBackground(new Color(255, 255, 255));
@@ -95,6 +96,5 @@ public class ChatFenster extends JFrame {
     } catch(ParseException e) {
     	e.printStackTrace();
     }
-    
   }
 }
