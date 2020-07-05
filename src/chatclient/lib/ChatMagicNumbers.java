@@ -28,8 +28,8 @@ public class ChatMagicNumbers{
 	public final static byte SWITCH_TO_ENC_MODE		= 0x5F;
 	public final static byte CONNECTION_NAME		= (0x6F); //Name of the connection Partner
 	public final static byte ENC_MESSAGE			= (byte)(0x7F); //Encrypted Message
+	public final static byte ENC_SUCCESS            = (byte)(0xE0); //Teststring decryption succeeded
 	/*The teststring could not be decrypted*/
-	public final static byte ENC_ERROR				= (byte)(0xE0);
-	public final static byte ENC_SUCCESS			= (byte)(0xF0); //Teststring decryption succeeded
+	public final static byte ENC_ERROR				= (byte)(0xF0);
 	public final static byte CLOSE_CONNECTION		= (byte)(0xFF);
 }
