@@ -223,7 +223,7 @@ public class Connection extends Thread {
                  * The scanner blocks until a new input is detected or the socket is closed and
                  * then returns a new line which is added to the end of the queue
                  */
-                queue(sc.nextLine(), QueueModes.ADD);
+                getNewMessage(sc.nextLine());
             }
         } catch (NoSuchElementException | IllegalStateException e) {
             return;
@@ -714,21 +714,5 @@ public class Connection extends Thread {
                 + socket.getLocalPort();
     }
     
-    /* Tmp */
 
-    void getNewMessages() {
-        try {
-            String message = queue(null, QueueModes.GET);
-            while (message != null) {
-                System.out.println(getNewMessage(message));
-                message = queue(null, QueueModes.GET);
-            }
-        } catch (NoSuchElementException e) {
-            return;
-        }
-    }
-    
-    public StyledDocument getDocument() {
-    	return doc;
-    }
 }
