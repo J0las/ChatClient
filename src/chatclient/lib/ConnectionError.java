@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import chatclient.Connection;
-import chatclient.Connections;
 import chatclient.log.Log;
 import chatclient.log.LogType;
 
@@ -93,7 +92,5 @@ public class ConnectionError extends Error {
 		con.closeConnection();
 		/*Stop the thread through an interrupt*/
 		con.interrupt();
-		/*Remove this connection from the list of available connections*/
-		Connections.remove(con);
 	}
 }	

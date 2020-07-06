@@ -16,6 +16,7 @@
 
 package chatclient;
 
+import java.awt.CardLayout;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -34,6 +35,8 @@ public class Launcher {
 	private static Thread 	server;
 	public static volatile boolean loggedIn = false;
 	public static JTextPane chattext;
+	public static volatile Connection selectedConnection = null;
+	public static CardLayout layout;
 	
 	public static void main(String[] args) throws ConnectionError {
 	    ensureSingleInstance();
@@ -47,7 +50,6 @@ public class Launcher {
 		server.start();
 		ChatFenster chatFenster = new ChatFenster();
         chatFenster.setVisible(true);
-		Client.run();
 		}
 	private static void ensureSingleInstance() {
 		final File file = new File(System.getProperty("java.io.tmpdir")+"ChatClient.lock");

@@ -26,7 +26,6 @@ import javax.swing.JFormattedTextField;
 
 import chatclient.Connection;
 import chatclient.Connections;
-import chatclient.gui.ErrorFenster;
 
 public class ConnectionCreator implements ActionListener {
 
@@ -54,7 +53,6 @@ public class ConnectionCreator implements ActionListener {
             con.start();
             Connections.add(con);
         } catch (IOException | UnreachableIPException | ConnectionError e) {
-           ErrorFenster.error();
         	return;
         }
     }

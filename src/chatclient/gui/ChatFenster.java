@@ -16,6 +16,7 @@
 
 package chatclient.gui;
 
+import java.awt.Color;
 import java.awt.EventQueue;
 import java.text.ParseException;
 
@@ -24,15 +25,12 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextPane;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.MaskFormatter;
 
 import chatclient.Launcher;
 import chatclient.lib.ConnectionCreator;
-import javax.swing.JTextPane;
-import java.awt.Color;
-import chatclient.Connection;
-import chatclient.Connections;
 
 
 @SuppressWarnings("serial")
