@@ -63,6 +63,7 @@
 package chatclient;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -92,6 +93,7 @@ import javax.crypto.spec.DHParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.swing.JTextPane;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
@@ -124,27 +126,24 @@ public class Connection extends Thread implements ActionListener{
     /* Cryptoobject for encrypting and decrypting messages and hashes */
     private Crypto crypto;
 
-    private JTextPane pane;
+    private JTextPane chattext;
     SimpleAttributeSet ownNameColor;
     SimpleAttributeSet otherNameColor;
     SimpleAttributeSet MessageColor;
     StyledDocument doc;
     
-    private String layoutKey;
 
     public Connection(Socket socket, boolean openedConnection) throws ConnectionError {
         /* Setup objects */
         this.hash = new Hash(this);
         this.socket = socket;
-        try {
-            layoutKey = ByteConverter.byteArrayToHexString(SecureRandom.getInstanceStrong().generateSeed(16));
-        } catch (NoSuchAlgorithmException e) {
-            throw new AssertionError();
-        }
 
-        this.pane = new JTextPane();
-        this.pane.setEditable(false);
-        this.doc = this.pane.getStyledDocument();
+        chattext = new JTextPane();
+        chattext.setEditable(false);
+        chattext.setBounds(Constants.chattext);
+        chattext.setBackground(new Color(255, 255, 255));
+        chattext.setEditable(false);
+        this.doc = chattext.getStyledDocument();
         this.MessageColor = new SimpleAttributeSet();
         StyleConstants.setForeground(this.MessageColor, Color.BLACK);
         this.ownNameColor = new SimpleAttributeSet();
@@ -199,6 +198,12 @@ public class Connection extends Thread implements ActionListener{
             recieveName();
             /* Sends his own Name to the other ChatCllient */
             sendName();
+            try {
+                System.out.println(doc.getLength());
+                doc.insertString(doc.getLength(), "test", MessageColor);
+            } catch (BadLocationException e) {
+               throw new AssertionError();
+            }
         }
         /* Logs that the connection was created successfully */
         Log.log(new String[] { getIP_PORT(), otherName }, LogType.CONNECTION_ESTABLISHED);
@@ -234,8 +239,8 @@ public class Connection extends Thread implements ActionListener{
     
     @Override
     public void actionPerformed(ActionEvent e) {
-       //Launcher.layout.show(parent, layoutKey);
-        
+        Launcher.chatFenster.switchJTextPane(chattext);
+        Launcher.chatFenster.setConnectionName("hallo");
     }
 
 
@@ -663,7 +668,6 @@ public class Connection extends Thread implements ActionListener{
         /* sets the closed flag to true */
         closed = true;
         /*Remove this connection from the list of available connections*/
-        Connections.remove(this);
     }
 
     /***************/
@@ -702,6 +706,10 @@ public class Connection extends Thread implements ActionListener{
     public String toString() {
         return "Connection: " + otherName + " to ip: " + socket.getInetAddress().getHostAddress() + ":"
                 + socket.getLocalPort();
+    }
+
+    public Component getJTextPane() {
+        return chattext;
     }
 
 }

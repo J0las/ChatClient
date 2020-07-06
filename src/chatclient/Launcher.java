@@ -37,6 +37,9 @@ public class Launcher {
 	public static JTextPane chattext;
 	public static volatile Connection selectedConnection = null;
 	public static CardLayout layout;
+	private static int indexLastConnection = 0;
+	private static Connection[] connections = new Connection[5];
+	public static ChatFenster chatFenster;
 	
 	public static void main(String[] args) throws ConnectionError {
 	    ensureSingleInstance();
@@ -48,7 +51,7 @@ public class Launcher {
 		server = new Server();
 		/*Starts the server thread*/
 		server.start();
-		ChatFenster chatFenster = new ChatFenster();
+		chatFenster = new ChatFenster();
         chatFenster.setVisible(true);
 		}
 	private static void ensureSingleInstance() {
@@ -79,5 +82,14 @@ public class Launcher {
                 JOptionPane.ERROR_MESSAGE);
 		System.exit(1);
 	}
-	
+	public static synchronized void array(Connection con) {
+	    if(!(connections[Launcher.indexLastConnection] == null)) {
+	        connections[Launcher.indexLastConnection].closeConnection();
+	    }
+	    connections[Launcher.indexLastConnection] = con;
+	    Launcher.chatFenster.getButton(Launcher.indexLastConnection).setText(con.getOtherName());
+	    Launcher.chatFenster.add(con.getJTextPane());
+        Launcher.chatFenster.getButton(Launcher.indexLastConnection).addActionListener(con);
+	    Launcher.indexLastConnection = (Launcher.indexLastConnection+1)%5;
+	}
 }
