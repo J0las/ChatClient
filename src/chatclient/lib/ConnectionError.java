@@ -50,7 +50,7 @@ public class ConnectionError extends Error {
             }, LogType.GENERAL_IO_ERROR);
 	}
 	/*Case for invalid Hash*/
-	public ConnectionError(byte[] calcHash, byte[] sendHash, byte[] messageContents, Connection con) {
+	ConnectionError(byte[] calcHash, byte[] sendHash, byte[] messageContents, Connection con) {
 		always(con);
 		/*Log the event*/
 		Log.log(new String[] {

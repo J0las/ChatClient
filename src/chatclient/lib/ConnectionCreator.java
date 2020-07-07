@@ -53,7 +53,7 @@ public class ConnectionCreator implements ActionListener {
             con.start();
             Launcher.array(con);
         } catch (IOException | UnreachableIPException | ConnectionError e) {
-        	ErrorFenster.error();
+        	ErrorFenster.error("Could not reach the specified ip.\nPlease try again later!");
         }
     }
 }

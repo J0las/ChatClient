@@ -38,8 +38,8 @@ import chatclient.lib.MessageSender;
 @SuppressWarnings("serial")
 public class ChatFenster extends JFrame {
 
-  public JPanel contentPane;
-  public JButton[] connectionButtons = new JButton[5];  
+  private JPanel contentPane;
+  private JButton[] connectionButtons = new JButton[5];  
   private JFormattedTextField ip_feld;
   private JButton connectButton;
   private JTextPane chattext;
@@ -125,7 +125,7 @@ public class ChatFenster extends JFrame {
     	//hier werden die u verschickenen Nachrichten eingegeben
     	sendeButton.addActionListener(new MessageSender(send_feld));
 
-    	
+    	setAlwaysOnTop(false);
     } catch(ParseException e) {
     	throw new AssertionError();
     }

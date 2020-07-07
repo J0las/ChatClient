@@ -16,14 +16,12 @@
 
 package chatclient;
 
-import java.awt.CardLayout;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
 
 import javax.swing.JOptionPane;
-import javax.swing.JTextPane;
 
 import chatclient.gui.AnmeldeFenster;
 import chatclient.gui.ChatFenster;
@@ -34,11 +32,9 @@ public class Launcher {
 	public static String name;
 	private static Thread 	server;
 	public static volatile boolean loggedIn = false;
-	public static JTextPane chattext;
 	public static volatile Connection selectedConnection = null;
-	public static CardLayout layout;
 	private static int indexLastConnection = 0;
-	public static Connection[] connections = new Connection[5];
+	static Connection[] connections = new Connection[5];
 	public static ChatFenster chatFenster;
 	
 	public static void main(String[] args) throws ConnectionError {
@@ -92,7 +88,7 @@ public class Launcher {
         Launcher.chatFenster.getButton(Launcher.indexLastConnection).addActionListener(con);
 	    Launcher.indexLastConnection = (Launcher.indexLastConnection+1)%5;
 	}
-	public static int getArrayIndex(Connection con) {
+	static int getArrayIndex(Connection con) {
 	    for(int i=0; i<5; i++) {
 	        if(connections[i]==con) return i;
 	    }

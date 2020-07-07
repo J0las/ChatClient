@@ -98,6 +98,7 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
+import chatclient.gui.ErrorFenster;
 import chatclient.lib.ByteConverter;
 import chatclient.lib.ChatMagicNumbers;
 import chatclient.lib.ConnectionError;
@@ -119,25 +120,24 @@ public class Connection extends Thread implements ActionListener{
     private String otherName = "";
     /* scanner for easy input */
     private Scanner sc;
-    /* Represents the state of the connection */
-    private boolean closed = false;
     /* Hashobject for creating or validating hashes */
     private Hash hash;
     /* Cryptoobject for encrypting and decrypting messages and hashes */
     private Crypto crypto;
-
+    /*JTextPane of this connection for displaying the chat history*/
     private JTextPane chattext;
-    SimpleAttributeSet ownNameColor;
-    SimpleAttributeSet otherNameColor;
-    SimpleAttributeSet MessageColor;
-    StyledDocument doc;
+    /*SimpleattributeSets for the specific types of text displayed*/
+    private SimpleAttributeSet ownNameColor;
+    private SimpleAttributeSet otherNameColor;
+    private SimpleAttributeSet MessageColor;
+    /*Styled document that holds the chat history*/
+    private StyledDocument doc;
     
-
     public Connection(Socket socket, boolean openedConnection) throws ConnectionError {
         /* Setup objects */
         this.hash = new Hash(this);
         this.socket = socket;
-
+        /*Set up gui stuff*/
         chattext = new JTextPane();
         chattext.setEditable(false);
         chattext.setBounds(Constants.chattext);
@@ -221,7 +221,7 @@ public class Connection extends Thread implements ActionListener{
             while (!this.isInterrupted()) {
                 /*
                  * The scanner blocks until a new input is detected or the socket is closed and
-                 * then returns a new line which is added to the end of the queue
+                 * then returns a new line which is added to the end of the chathistory
                  */
                 getNewMessage(sc.nextLine());
             }
@@ -232,9 +232,13 @@ public class Connection extends Thread implements ActionListener{
     }
     
     @Override
+    /*This Method is called when the connection select button for this object is pressed*/
     public void actionPerformed(ActionEvent e) {
+        /*Set the own JTextPane to the front*/
         Launcher.chatFenster.switchJTextPane(chattext);
+        /*Change the displayed connection name*/
         Launcher.chatFenster.setConnectionName(otherName);
+        /*Switch the selected connection to this one*/
         Launcher.selectedConnection = this;
     }
 
@@ -359,7 +363,7 @@ public class Connection extends Thread implements ActionListener{
     }
 
     /* Receives a Public Key extracts validates and returns it */
-    byte[] recievePubKey() throws ConnectionError {
+    private byte[] recievePubKey() throws ConnectionError {
         /* Wait for the incoming message */
         while (!sc.hasNextLine());
         /* Decode the Base64 message */
@@ -392,7 +396,7 @@ public class Connection extends Thread implements ActionListener{
     }
     
     /*Return the AES parameters needed to encrypt or decrypt data*/
-    byte[] setUpCrypto(SecretKeySpec AES_Key) throws InvalidKeyException, InvalidAlgorithmParameterException{
+    private byte[] setUpCrypto(SecretKeySpec AES_Key) throws InvalidKeyException, InvalidAlgorithmParameterException{
         try {
             /*Get a Cipher for AES in cipher-block-chaining mode with PKCS5 padding*/
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -451,8 +455,8 @@ public class Connection extends Thread implements ActionListener{
     /* 	                                       		*/
     /************************************************/
 
-    /*Checks if the exchanged AES key is the same for both ChatClients*/
-    void checkEncryption(boolean opened) throws ConnectionError{
+     /*Checks if the exchanged AES key is the same for both ChatClients*/
+    private void checkEncryption(boolean opened) throws ConnectionError{
         /* Branch if the connection was opened from this ChatClient */
         if (opened) {
             /*Wait for the message to arrive*/
@@ -618,7 +622,8 @@ public class Connection extends Thread implements ActionListener{
         writeToPane(message, false);
     }
     
-    synchronized void writeToPane(String message, boolean send) {
+    /*This method writes a message to the document that gets displayed by the JTextPane*/
+    private synchronized void writeToPane(String message, boolean send) {
         try {
         doc.insertString(doc.getLength(), "<", MessageColor);
         if(send) {
@@ -682,9 +687,8 @@ public class Connection extends Thread implements ActionListener{
                 LogType.CONNECTION_CLOSED);
         /*Close the scanner*/
         sc.close();
-        /* sets the closed flag to true */
-        closed = true;
-        /*Remove this connection from the list of available connections*/
+        Launcher.chatFenster.resetJTextPane(chattext);
+        ErrorFenster.error("Closed Connection: "+otherName);
     }
 
     /***************/
@@ -698,31 +702,9 @@ public class Connection extends Thread implements ActionListener{
         return this.otherName;
     }
 
-    /* Returns true if the connection was closed */
-    boolean isClosed() {
-        /* if it was already closed return true */
-        if (closed)
-            return true;
-        /* if the socket is closed set closed to true */
-        if (socket.isClosed())
-            closed = true;
-        /* Return the value of closed */
-        return closed;
-    }
-
     /*Return the IP and port of this connection in a formated string*/
     public String getIP_PORT() {
         return socket.getInetAddress().getHostAddress() + "/" + socket.getPort();
-    }
-
-    /*
-     * Returns a string containing the other ChatClients name with his ip address
-     * and port
-     */
-    @Override
-    public String toString() {
-        return "Connection: " + otherName + " to ip: " + socket.getInetAddress().getHostAddress() + ":"
-                + socket.getLocalPort();
     }
 
     public Component getJTextPane() {
