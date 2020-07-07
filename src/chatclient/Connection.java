@@ -198,12 +198,6 @@ public class Connection extends Thread implements ActionListener{
             recieveName();
             /* Sends his own Name to the other ChatCllient */
             sendName();
-            try {
-                System.out.println(doc.getLength());
-                doc.insertString(doc.getLength(), "test", MessageColor);
-            } catch (BadLocationException e) {
-               throw new AssertionError();
-            }
         }
         /* Logs that the connection was created successfully */
         Log.log(new String[] { getIP_PORT(), otherName }, LogType.CONNECTION_ESTABLISHED);
@@ -229,7 +223,7 @@ public class Connection extends Thread implements ActionListener{
                  * The scanner blocks until a new input is detected or the socket is closed and
                  * then returns a new line which is added to the end of the queue
                  */
-                System.out.println(getNewMessage(sc.nextLine()));
+                getNewMessage(sc.nextLine());
             }
         } catch (NoSuchElementException | IllegalStateException | ConnectionError e) {
             closeConnection();
@@ -240,7 +234,8 @@ public class Connection extends Thread implements ActionListener{
     @Override
     public void actionPerformed(ActionEvent e) {
         Launcher.chatFenster.switchJTextPane(chattext);
-        Launcher.chatFenster.setConnectionName("hallo");
+        Launcher.chatFenster.setConnectionName(otherName);
+        Launcher.selectedConnection = this;
     }
 
 
@@ -571,7 +566,8 @@ public class Connection extends Thread implements ActionListener{
     /*********************************************/
 
     /* Send a message to the other ChatCLient */
-    void sendMessage(String message) {
+    public void sendMessage(String message) {
+        writeToPane(message, true);
         /* Allocates a buffer for the UTF-8 representation of the message */
         byte[] messageBytes = message.getBytes(StandardCharsets.UTF_8);
         /* Calculates the hash and stores it inside a new buffer */
@@ -597,7 +593,7 @@ public class Connection extends Thread implements ActionListener{
     }
 
     /* Returns the content of the next Message */
-    private String getNewMessage(String stringMessage) throws ConnectionError {
+    private void getNewMessage(String stringMessage) throws ConnectionError {
         /* Decode the message from Base64 to raw bytes */
         byte[] rawMessage = decodeBase64(stringMessage);
         /* Validates the header */
@@ -619,7 +615,21 @@ public class Connection extends Thread implements ActionListener{
         /* Logs the new message */
         Log.log(new String[] { getIP_PORT(), this.otherName, message }, LogType.MESSAGE_RECIEVED);
         /* Returns the message */
-        return message;
+        writeToPane(message, false);
+    }
+    
+    synchronized void writeToPane(String message, boolean send) {
+        try {
+        doc.insertString(doc.getLength(), "<", MessageColor);
+        if(send) {
+            doc.insertString(doc.getLength(),Launcher.name , ownNameColor);
+        } else {
+            doc.insertString(doc.getLength(), otherName, otherNameColor);
+        }
+        doc.insertString(doc.getLength(),"> "+message+"\n", MessageColor);
+        } catch(BadLocationException e) {
+            throw new AssertionError();
+        }
     }
 
     /*********************************************/
