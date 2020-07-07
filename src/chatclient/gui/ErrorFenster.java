@@ -6,7 +6,7 @@ import chatclient.Launcher;
 
 public class ErrorFenster{
         public static synchronized void error(String message){  //Bei Fehlermeldungen wird diese Operation aufgerufen
-                JOptionPane.showConfirmDialog(Launcher.chatFenster,
+                JOptionPane.showMessageDialog(Launcher.chatFenster,
                                               message,   //angezeigter Text
                                               "ERROR",   //Titel des Fensters					      
 					      JOptionPane.WARNING_MESSAGE);  //Bild einer Warnung
