@@ -44,6 +44,7 @@ public class ChatFenster extends JFrame {
   private JTextPane chattext;
   private JTextField send_feld;
   private JLabel connectionName;
+  private JTextPane lastPane;
 
   /**
    * Create the frame.
@@ -80,6 +81,7 @@ public class ChatFenster extends JFrame {
     	chattext.setBounds(Constants.chattext);
     	chattext.setBackground(new Color(255, 255, 255));
     	contentPane.add(chattext);
+    	lastPane = chattext;
     	
     	JButton sendeButton = new JButton("Senden");
     	sendeButton.setBounds(600, 333, 89, 77);
@@ -120,8 +122,9 @@ public class ChatFenster extends JFrame {
     }
   }
   public void switchJTextPane(JTextPane pane) {
-      chattext.setVisible(false);
+      lastPane.setVisible(false);
       pane.setVisible(true);
+      lastPane = pane;
   }
   public JButton getButton(int index) {
       return connectionButtons[index%5];
