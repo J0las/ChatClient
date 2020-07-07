@@ -59,23 +59,23 @@ public class ChatFenster extends JFrame {
     setContentPane(contentPane);
     contentPane.setLayout(null);
     setResizable(false);
+    //erstellt das leere Fenster in einer unveränderbarer Größe
     
-    connectButton = new JButton("Connect"); //Erstelle den Connectbutton
+    connectButton = new JButton("Connect"); 
     connectButton.setBounds(Constants.connectButton);
     contentPane.add(connectButton);
+    //erstellt den Connectbutton
     
     JLabel ip_anweisung = new JLabel("IP-Adresse des Empf\u00E4ngers:");
     ip_anweisung.setBounds(Constants.ip_anweisung);
     contentPane.add(ip_anweisung);
     try {
-    	MaskFormatter mf = new MaskFormatter("###.###.###.###");
+    	MaskFormatter mf = new MaskFormatter("###.###.###.###"); //setzt das Layout der IP
     	ip_feld = new JFormattedTextField(mf);
         ip_feld.setBounds(10, 382, 141, 29);
     	contentPane.add(ip_feld);
     	connectButton.addActionListener(new ConnectionCreator(ip_feld));
-    	
-
-    //Erstelle das Textfeld, in der die IP-Adresse eingegeben wird mit der Maske	
+        //erstellt das Textfeld, in der die IP-Adresse mit der Maske eingegeben wird
     	
     	chattext = new JTextPane();
     	chattext.setEditable(false);
@@ -83,15 +83,18 @@ public class ChatFenster extends JFrame {
     	chattext.setBackground(new Color(255, 255, 255));
     	contentPane.add(chattext);
     	lastPane = chattext;
+    	//hier wird der Text der Chatverlauf eingefügt
     	
     	JButton sendeButton = new JButton("Senden");
     	sendeButton.setBounds(600, 333, 89, 77);
     	contentPane.add(sendeButton);
+    	//erstellt den Sende-Button
     	
     	connectionName = new JLabel();
     	connectionName.setBounds(310, 11, 379, 38);
     	connectionName.enableInputMethods(true);
     	contentPane.add(connectionName);
+    	//hier steht der Name dessen, dem man Nachrichten schreibt
     	
     	connectionButtons[0] = new JButton("Keine Verbindung");
     	connectionButtons[0].setBounds(28, 60, 262, 38);
@@ -113,11 +116,17 @@ public class ChatFenster extends JFrame {
     	connectionButtons[4].setBounds(28, 254, 262, 38);
     	contentPane.add(connectionButtons[4]);
     	
+    	//erstellt die fünf Verbindungsbuttons
+    	
     	send_feld = new JTextField();
     	send_feld.setBounds(320, 333, 270, 78);
     	contentPane.add(send_feld);
     	send_feld.setColumns(10);
+<<<<<<< HEAD
+    	//hier werden die u verschickenen Nachrichten eingegeben
+=======
     	sendeButton.addActionListener(new MessageSender(send_feld));
+>>>>>>> f23ac419b3e4350e43e82545e348839216a2fddc
     	
     } catch(ParseException e) {
     	throw new AssertionError();
@@ -126,12 +135,17 @@ public class ChatFenster extends JFrame {
   public void switchJTextPane(JTextPane pane) {
       lastPane.setVisible(false);
       pane.setVisible(true);
-      lastPane = pane;
+      lastPane = pane;      
   }
+  //ersetzt das Chatfenster der alten Verbindung surch das der neuen
+  
   public JButton getButton(int index) {
       return connectionButtons[index%5];
   }
+  //gibt den Button zurück, der die Referenz zu der neuen Verbindung bekommt 
+  
   public void setConnectionName(String name) {
       connectionName.setText(name);
   }
+  //setzt den Usernamen der Verbindung über den Chat
 }

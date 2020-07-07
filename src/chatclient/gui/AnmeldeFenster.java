@@ -51,15 +51,18 @@ public class AnmeldeFenster extends JFrame {
     setContentPane(contentPane);
     contentPane.setLayout(null);
     setResizable(false);
+    //erstellt das leere Fenster in einer unveränderbarer Größe
     
     username_feld = new JTextField();
     username_feld.setBounds(Constants.username_feld);
     username_feld.setColumns(10);
     contentPane.add(username_feld);
+    //erstellt das Feld, in den man dan Usernamen eingibt 
     
     anmeldebutton = new JButton("Anmelden");
     anmeldebutton.setBounds(Constants.anmeldebutton);
     contentPane.add(anmeldebutton);
+    //erstellt den Button zum Anmelden    
     
     JLabel nametextfeld = new JLabel("Name:");
     nametextfeld.setBounds(Constants.nametextfeld);
@@ -68,10 +71,12 @@ public class AnmeldeFenster extends JFrame {
     logging_box = new JCheckBox("Protokoll");
     logging_box.setBounds(Constants.logging_box);
     contentPane.add(logging_box);
+    //erstellt die Checkbox, ob Logging aktiviert werden soll
+    
     anmeldebutton.addActionListener(new ActionListener() {
 
         @Override
-        public void actionPerformed(ActionEvent e) {
+        public void actionPerformed(ActionEvent e) {  //wird aufgerufen, wenn der Anmeldebutton gedrückt wird
             Launcher.name = username_feld.getText();
             Log.init(logging_box.isSelected());
             Launcher.loggedIn = true;   
