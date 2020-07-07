@@ -63,6 +63,9 @@
 package chatclient;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.Socket;
@@ -79,9 +82,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.LinkedList;
 import java.util.NoSuchElementException;
-import java.util.Queue;
 import java.util.Scanner;
 
 import javax.crypto.Cipher;
@@ -92,6 +93,7 @@ import javax.crypto.spec.DHParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.swing.JTextPane;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
@@ -105,11 +107,10 @@ import chatclient.lib.CryptoModes;
 import chatclient.lib.ErrorType;
 import chatclient.lib.Hash;
 import chatclient.lib.HashModes;
-import chatclient.lib.QueueModes;
 import chatclient.log.Log;
 import chatclient.log.LogType;
 
-public class Connection extends Thread {
+public class Connection extends Thread implements ActionListener{
     /* Socket for connection to the other ChatClient */
     private Socket socket;
     /* printstream for easy output */
@@ -124,26 +125,25 @@ public class Connection extends Thread {
     private Hash hash;
     /* Cryptoobject for encrypting and decrypting messages and hashes */
     private Crypto crypto;
-    /*
-     * Queue for exchanging messages between the accepting thread and the message
-     * handler
-     */
-    private Queue<String> input;
-    private JTextPane pane;
+
+    private JTextPane chattext;
     SimpleAttributeSet ownNameColor;
     SimpleAttributeSet otherNameColor;
     SimpleAttributeSet MessageColor;
     StyledDocument doc;
+    
 
     public Connection(Socket socket, boolean openedConnection) throws ConnectionError {
         /* Setup objects */
         this.hash = new Hash(this);
         this.socket = socket;
-        this.input = new LinkedList<String>();
 
-        this.pane = new JTextPane();
-        this.pane.setEditable(false);
-        this.doc = this.pane.getStyledDocument();
+        chattext = new JTextPane();
+        chattext.setEditable(false);
+        chattext.setBounds(Constants.chattext);
+        chattext.setBackground(new Color(255, 255, 255));
+        chattext.setEditable(false);
+        this.doc = chattext.getStyledDocument();
         this.MessageColor = new SimpleAttributeSet();
         StyleConstants.setForeground(this.MessageColor, Color.BLACK);
         this.ownNameColor = new SimpleAttributeSet();
@@ -198,6 +198,12 @@ public class Connection extends Thread {
             recieveName();
             /* Sends his own Name to the other ChatCllient */
             sendName();
+            try {
+                System.out.println(doc.getLength());
+                doc.insertString(doc.getLength(), "test", MessageColor);
+            } catch (BadLocationException e) {
+               throw new AssertionError();
+            }
         }
         /* Logs that the connection was created successfully */
         Log.log(new String[] { getIP_PORT(), otherName }, LogType.CONNECTION_ESTABLISHED);
@@ -223,33 +229,20 @@ public class Connection extends Thread {
                  * The scanner blocks until a new input is detected or the socket is closed and
                  * then returns a new line which is added to the end of the queue
                  */
-                queue(sc.nextLine(), QueueModes.ADD);
+                System.out.println(getNewMessage(sc.nextLine()));
             }
-        } catch (NoSuchElementException | IllegalStateException e) {
+        } catch (NoSuchElementException | IllegalStateException | ConnectionError e) {
+            closeConnection();
             return;
         }
-        System.out.println("CLOSE");
+    }
+    
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        Launcher.chatFenster.switchJTextPane(chattext);
+        Launcher.chatFenster.setConnectionName("hallo");
     }
 
-    /*
-     * Function to allow a thread safe handling of the queue making it possible to
-     * add and remove strings from it
-     */
-    private synchronized String queue(String message, QueueModes mode) throws NoSuchElementException {
-        /* Selects the mode of operation */
-        switch (mode) {
-        /* Case for adding a new string to the tail of the queue */
-        case ADD:
-            input.add(message);
-            return null;
-        /* Case for retrieving a string from the head of the queue */
-        case GET:
-            return input.remove();
-        /* Handles illegal enum types */
-        default:
-            throw new IllegalArgumentException();
-        }
-    }
 
     /************************************************/
     /*	                                            */
@@ -257,12 +250,12 @@ public class Connection extends Thread {
     /* 	                                       		*/
     /************************************************/
 
-    /* Send the specified header */
+    /* Send the specified header as a Base64 encoded string*/
     private void sendHeader(byte header) {
         out.println(new String(Base64.getEncoder().encode(new byte[] { header }), StandardCharsets.UTF_8));
     }
 
-    /* Check if the header matches the specified magic */
+    /* Check if the header matches the specified magic number*/
     private void checkHeader(byte header) throws ConnectionError {
         /* Wait for the response */
         while (!sc.hasNextLine())
@@ -409,7 +402,7 @@ public class Connection extends Thread {
             /*Get a Cipher for AES in cipher-block-chaining mode with PKCS5 padding*/
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             /*Create a SecureRandom object to generate a random initialization vector*/
-            SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG");
+            SecureRandom secureRandom = SecureRandom.getInstanceStrong();
             /*Allocate a buffer for the initialization vector with the size of an AES block*/
             byte[] iv = new byte[cipher.getBlockSize()];
             /*Generate the initialization vector*/
@@ -607,11 +600,11 @@ public class Connection extends Thread {
     private String getNewMessage(String stringMessage) throws ConnectionError {
         /* Decode the message from Base64 to raw bytes */
         byte[] rawMessage = decodeBase64(stringMessage);
-        /* Checks if the message conforms to the format of expected messages */
-        checkMessageFormat(rawMessage);
         /* Validates the header */
         if (rawMessage[Constants.HEADER_OFFSET] != ChatMagicNumbers.ENC_MESSAGE)
             throw new ConnectionError(rawMessage[Constants.HEADER_OFFSET], ChatMagicNumbers.ENC_MESSAGE, this);
+        /* Checks if the message conforms to the format of expected messages */
+        checkMessageFormat(rawMessage);
         /* Decrypts the data */
         byte[] decData = crypto.cryptoOperation(rawMessage, CryptoModes.DECRYPT);
         /* Allocates a new buffer to retain message format */
@@ -674,6 +667,7 @@ public class Connection extends Thread {
         sc.close();
         /* sets the closed flag to true */
         closed = true;
+        /*Remove this connection from the list of available connections*/
     }
 
     /***************/
@@ -713,22 +707,9 @@ public class Connection extends Thread {
         return "Connection: " + otherName + " to ip: " + socket.getInetAddress().getHostAddress() + ":"
                 + socket.getLocalPort();
     }
-    
-    /* Tmp */
 
-    void getNewMessages() {
-        try {
-            String message = queue(null, QueueModes.GET);
-            while (message != null) {
-                System.out.println(getNewMessage(message));
-                message = queue(null, QueueModes.GET);
-            }
-        } catch (NoSuchElementException e) {
-            return;
-        }
+    public Component getJTextPane() {
+        return chattext;
     }
-    
-    public StyledDocument getDocument() {
-    	return doc;
-    }
+
 }

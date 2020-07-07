@@ -25,7 +25,7 @@ import java.net.Socket;
 import javax.swing.JFormattedTextField;
 
 import chatclient.Connection;
-import chatclient.Connections;
+import chatclient.Launcher;
 import chatclient.gui.ErrorFenster;
 
 public class ConnectionCreator implements ActionListener {
@@ -39,7 +39,6 @@ public class ConnectionCreator implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent event) {
         String ipString = field.getText();
-        System.out.println(ipString);
         String[] subIP = ipString.split("\\.");
         byte[] ipBytes = new byte[4];
         try {
@@ -52,10 +51,9 @@ public class ConnectionCreator implements ActionListener {
                                 new Socket(ip,
                                         Constants.STANDARD_PORT), true);
             con.start();
-            Connections.add(con);
+            Launcher.array(con);
         } catch (IOException | UnreachableIPException | ConnectionError e) {
-           ErrorFenster.error();
-        	return;
+        	ErrorFenster.error();
         }
     }
 }

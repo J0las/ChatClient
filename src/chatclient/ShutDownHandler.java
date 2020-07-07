@@ -46,12 +46,6 @@ class ShutDownHandler extends Thread {
 		}
 		server.interrupt();
 		Log.log(new String[0], LogType.CLOSED_SERVER);
-		/*Get all current connections*/
-		Connection[] cons = Connections.toArray();
-		for(Connection con : cons) {
-		    /*Close the selected connection*/
-			con.closeConnection();
-		}
 		Log.close();
 	}
 }

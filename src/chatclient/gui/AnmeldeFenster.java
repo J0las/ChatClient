@@ -16,7 +16,6 @@
 
 package chatclient.gui;
 
-import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -29,6 +28,7 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
 import chatclient.Launcher;
+import chatclient.lib.Constants;
 import chatclient.log.Log;
 
 @SuppressWarnings("serial")
@@ -38,24 +38,6 @@ public class AnmeldeFenster extends JFrame {
   public JTextField username_feld;
   public JButton anmeldebutton;
   public JCheckBox logging_box;
-
-  /**
-   * Launch the application.
-   */
-  public static void main(String[] args) {
-    EventQueue.invokeLater(new Runnable() {
-      public void run() {
-        try {
-          AnmeldeFenster frame = new AnmeldeFenster();
-          frame.setVisible(true);
-          
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      
-      }
-    });
-  }
 
   /**
    * Create the frame.
@@ -71,20 +53,20 @@ public class AnmeldeFenster extends JFrame {
     setResizable(false);
     
     username_feld = new JTextField();
-    username_feld.setBounds(78, 11, 200, 20);
+    username_feld.setBounds(Constants.username_feld);
     username_feld.setColumns(10);
     contentPane.add(username_feld);
     
     anmeldebutton = new JButton("Anmelden");
-    anmeldebutton.setBounds(118, 47, 120, 23);
+    anmeldebutton.setBounds(Constants.anmeldebutton);
     contentPane.add(anmeldebutton);
     
     JLabel nametextfeld = new JLabel("Name:");
-    nametextfeld.setBounds(22, 5, 46, 33);
+    nametextfeld.setBounds(Constants.nametextfeld);
     contentPane.add(nametextfeld);
     
     logging_box = new JCheckBox("Protokoll");
-    logging_box.setBounds(141, 77, 97, 23);
+    logging_box.setBounds(Constants.logging_box);
     contentPane.add(logging_box);
     anmeldebutton.addActionListener(new ActionListener() {
 

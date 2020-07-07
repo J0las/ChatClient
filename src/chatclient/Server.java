@@ -71,11 +71,10 @@ public class Server extends Thread {
 				Connection con = new Connection(s, false);
 				/*Start the thread of this connection to get the messages*/
 				con.start();
-				/*Adds the new connection in accepting configuration to the shared ArrayList*/
-				Connections.add(con);
+				Launcher.array(con);
 			} catch(ConnectionError e) {
 			    
-			} catch ( IOException e) {
+			} catch ( IOException e) {			    
 			    /*Stop this thread*/
 			    return;
 			}

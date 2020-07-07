@@ -16,6 +16,7 @@
 
 package chatclient.lib;
 
+import java.awt.Rectangle;
 import java.nio.charset.StandardCharsets;
 
 public class Constants {
@@ -28,4 +29,12 @@ public class Constants {
 	public static final int		CHECKSUM_SIZE	= 32; //256Bit
 	public static final int		MESSAGE_OFFSET	= CHECKSUM_OFFSET + CHECKSUM_SIZE;
 	public static final int		AES_KEY_LENGTH	= 32; //256Bit
+	public static final Rectangle username_feld = new Rectangle(78, 11, 200, 20);
+	public static final Rectangle anmeldebutton = new Rectangle(118, 47, 120, 23);
+	public static final Rectangle nametextfeld  = new Rectangle(22, 5, 46, 33);
+	public static final Rectangle logging_box   = new Rectangle(141, 77, 97, 23);
+	public static final Rectangle chatfenster   = new Rectangle(100, 100, 703, 449);
+	public static final Rectangle connectButton = new Rectangle(182, 333, 108, 77);
+	public static final Rectangle ip_anweisung  = new Rectangle(10, 333, 273, 38);
+	public static final Rectangle chattext = new Rectangle(310, 60, 379, 263);
 }
