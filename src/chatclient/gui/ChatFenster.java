@@ -123,7 +123,7 @@ public class ChatFenster extends JFrame {
     	contentPane.add(send_feld);
     	send_feld.setColumns(10);
 <<<<<<< HEAD
-    	//hier werden die u verschickenen Nachrichten eingegeben
+    	//hier werden die zu verschickenen Nachrichten eingegeben
 =======
     	sendeButton.addActionListener(new MessageSender(send_feld));
 >>>>>>> f23ac419b3e4350e43e82545e348839216a2fddc
