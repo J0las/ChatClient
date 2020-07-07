@@ -45,6 +45,9 @@ class ShutDownHandler extends Thread {
 			e.printStackTrace();
 		}
 		server.interrupt();
+		for(Connection con : Launcher.connections) {
+		    con.closeConnection(true);
+		}
 		Log.log(new String[0], LogType.CLOSED_SERVER);
 		Log.close();
 	}

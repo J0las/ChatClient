@@ -86,7 +86,7 @@ public class ChatFenster extends JFrame {
     	//hier wird der Text der Chatverlauf eingef�gt
     	
     	JButton sendeButton = new JButton("Senden");
-    	sendeButton.setBounds(600, 333, 89, 77);
+    	sendeButton.setBounds(Constants.sendeButton);
     	contentPane.add(sendeButton);
     	//erstellt den Sende-Button
     	
@@ -113,13 +113,13 @@ public class ChatFenster extends JFrame {
     	contentPane.add(connectionButtons[3]);
     	
     	connectionButtons[4] = new JButton("Keine Verbindung");
-    	connectionButtons[4].setBounds(28, 254, 262, 38);
+    	connectionButtons[4].setBounds(28, 256, 262, 38);
     	contentPane.add(connectionButtons[4]);
     	
     	//erstellt die f�nf Verbindungsbuttons
     	
     	send_feld = new JTextField();
-    	send_feld.setBounds(320, 333, 270, 78);
+    	send_feld.setBounds(Constants.send_feld);
     	contentPane.add(send_feld);
     	send_feld.setColumns(10);
     	//hier werden die u verschickenen Nachrichten eingegeben
@@ -134,6 +134,14 @@ public class ChatFenster extends JFrame {
       lastPane.setVisible(false);
       pane.setVisible(true);
       lastPane = pane;      
+  }
+  public void resetJTextPane(JTextPane pane) {
+      if(lastPane == pane) {
+          pane.setVisible(false);
+          lastPane = chattext;
+          contentPane.remove(pane);
+          lastPane.setVisible(true);
+      }
   }
   //ersetzt das Chatfenster der alten Verbindung surch das der neuen
   

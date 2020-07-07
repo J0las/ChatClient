@@ -226,7 +226,7 @@ public class Connection extends Thread implements ActionListener{
                 getNewMessage(sc.nextLine());
             }
         } catch (NoSuchElementException | IllegalStateException | ConnectionError e) {
-            closeConnection();
+            closeConnection(false);
             return;
         }
     }
@@ -662,9 +662,16 @@ public class Connection extends Thread implements ActionListener{
     /*********************************************/
     
     /*shuts down the connection in a predictable way*/
-    public void closeConnection() {
+    public void closeConnection(boolean fromThisInstance) {
+        if(fromThisInstance) {
         /*Notifies the other ChatClient that this connection will be terminated*/
         sendHeader(ChatMagicNumbers.CLOSE_CONNECTION);
+        }
+        int index = Launcher.getArrayIndex(this);
+                if(index >= 0 && index < 5) {
+        Launcher.chatFenster.getButton(index).removeActionListener(this);
+        Launcher.chatFenster.getButton(index).setText("Keine Verbindung");
+                }
         /* Tries to close the socket */
         try {
             socket.close();
