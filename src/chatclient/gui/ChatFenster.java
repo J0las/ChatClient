@@ -32,6 +32,7 @@ import javax.swing.text.MaskFormatter;
 import chatclient.Launcher;
 import chatclient.lib.ConnectionCreator;
 import chatclient.lib.Constants;
+import chatclient.lib.MessageSender;
 
 
 @SuppressWarnings("serial")
@@ -121,7 +122,11 @@ public class ChatFenster extends JFrame {
     	send_feld.setBounds(320, 333, 270, 78);
     	contentPane.add(send_feld);
     	send_feld.setColumns(10);
+<<<<<<< HEAD
     	//hier werden die u verschickenen Nachrichten eingegeben
+=======
+    	sendeButton.addActionListener(new MessageSender(send_feld));
+>>>>>>> f23ac419b3e4350e43e82545e348839216a2fddc
     	
     } catch(ParseException e) {
     	throw new AssertionError();
