@@ -88,7 +88,7 @@ public class ChatFenster extends JFrame {
     	sendeButton.setBounds(600, 333, 89, 77);
     	contentPane.add(sendeButton);
     	
-    	connectionName = new JLabel("a");
+    	connectionName = new JLabel();
     	connectionName.setBounds(310, 11, 379, 38);
     	connectionName.enableInputMethods(true);
     	contentPane.add(connectionName);
