@@ -19,6 +19,7 @@ package chatclient.gui;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
@@ -52,6 +53,10 @@ public class AnmeldeFenster extends JFrame {
     contentPane.setLayout(null);
     setResizable(false);
     //erstellt das leere Fenster in einer unveränderbarer Größe
+    
+    ImageIcon logo = new ImageIcon(".//res//Logo_ChatClient.jpg");
+    setIconImage(logo.getImage());
+   //erstellt das Logo des Fensters
     
     username_feld = new JTextField();
     username_feld.setBounds(Constants.username_feld);

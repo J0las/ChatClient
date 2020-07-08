@@ -19,6 +19,7 @@ package chatclient.gui;
 import java.awt.Color;
 import java.text.ParseException;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
@@ -60,6 +61,10 @@ public class ChatFenster extends JFrame {
     contentPane.setLayout(null);
     setResizable(false);
     //erstellt das leere Fenster in einer unveränderbarer Größe
+    
+    ImageIcon logo = new ImageIcon(".//res//Logo_ChatClient.jpg");
+    setIconImage(logo.getImage());
+    //erstellt das Logo des Fensters
     
     connectButton = new JButton("Connect"); 
     connectButton.setBounds(Constants.connectButton);
