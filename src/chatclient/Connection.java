@@ -237,7 +237,7 @@ public class Connection extends Thread implements ActionListener{
         /*Set the own JTextPane to the front*/
         Launcher.chatFenster.switchJTextPane(chattext);
         /*Change the displayed connection name*/
-        Launcher.chatFenster.setConnectionName(otherName);
+        Launcher.chatFenster.setConnectionName(otherName+" / "+getIP_PORT());
         /*Switch the selected connection to this one*/
         Launcher.selectedConnection = this;
     }
