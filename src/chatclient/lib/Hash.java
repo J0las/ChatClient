@@ -28,7 +28,7 @@ public class Hash {
 			this.md = MessageDigest.getInstance("SHA-256");
 			this.con = con;
 		} catch (NoSuchAlgorithmException e1) {
-			e1.printStackTrace();
+			throw new AssertionError();
 		}
 	}
 	private MessageDigest md;
@@ -48,11 +48,12 @@ public class Hash {
 			byte[] computedHash = md.digest(messageContent);
 			/*Throws an Exception received and computed checksum do not match*/
 			if(!Arrays.equals(computedHash,checksum)) throw new ConnectionError(computedHash, checksum ,messageContent, con);
-			break;
+			return null;
 		case CREATE_HASH:
 			/*Return the hash of the message*/
 			return md.digest(message);
-		}
-		return null;
+		default:
+		    throw new IllegalArgumentException();
+		}    
 	}	
 }

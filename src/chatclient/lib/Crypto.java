@@ -66,7 +66,7 @@ public class Crypto {
 		case DECRYPT:
 			try {
 				/*Initializes the Cipher with the exchanged AES_Key in decryption mode*/
-				AlgorithmParameters params		= AlgorithmParameters.getInstance("AES");
+				AlgorithmParameters params = AlgorithmParameters.getInstance("AES");
 									params.init(encodedAES_Params);
 				cipher.init(Cipher.DECRYPT_MODE, AES_Key,params);
 				/*Performes the AES decryption on the given data*/
