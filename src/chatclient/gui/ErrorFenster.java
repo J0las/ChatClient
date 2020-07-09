@@ -2,8 +2,8 @@ package chatclient.gui;
 
 import javax.swing.JOptionPane;
 
-public class ErrorFenster{
-      
+public class ErrorFenster {
+	
 	public static void error(){  //Bei Fehlermeldungen wird diese Operation aufgerufen
                 JOptionPane.showMessageDialog(null,
                                               "ERROR",   //angezeigter Text
