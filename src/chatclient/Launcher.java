@@ -21,10 +21,9 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
 
-import javax.swing.JOptionPane;
-
 import chatclient.gui.AnmeldeFenster;
 import chatclient.gui.ChatFenster;
+import chatclient.gui.ErrorFenster;
 import chatclient.lib.ConnectionError;
 
 public class Launcher {
@@ -62,20 +61,17 @@ public class Launcher {
 					fileLock.release();
 					randomAccessFile.close();
 				} catch (IOException e) {
-					System.out.println("Failed to release the lock");
+					ErrorFenster.error("Failed to release the lock");
 				}
                 file.delete();					
 			}));
 				return;
 			}	
 		} catch (IOException e) {
-			System.out.println("Failed to acquire the lock");
+			ErrorFenster.error("Failed to aquire the lock");
 			return;
 		}
-		JOptionPane.showMessageDialog(null,
-                "An instance of this programm is allready running!",
-                "Multiple instance error",					      
-                JOptionPane.ERROR_MESSAGE);
+		ErrorFenster.error("An instance of this programm is allready running!");
 		System.exit(1);
 	}
 	public static synchronized void array(Connection con) {

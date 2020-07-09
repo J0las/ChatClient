@@ -95,7 +95,7 @@ public class ChatFenster extends JFrame {
     	contentPane.add(sendeButton);
     	//erstellt den Sende-Button
     	
-    	connectionName = new JLabel("a");
+    	connectionName = new JLabel();
     	connectionName.setBounds(310, 11, 379, 38);
     	connectionName.enableInputMethods(true);
     	contentPane.add(connectionName);
