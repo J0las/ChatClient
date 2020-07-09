@@ -36,5 +36,7 @@ public class Constants {
 	public static final Rectangle chatfenster   = new Rectangle(100, 100, 703, 449);
 	public static final Rectangle connectButton = new Rectangle(182, 333, 108, 77);
 	public static final Rectangle ip_anweisung  = new Rectangle(10, 333, 273, 38);
-	public static final Rectangle chattext = new Rectangle(310, 60, 370, 263);//379, 263);
+	public static final Rectangle chattext      = new Rectangle(310, 60, 370, 263);
+	public static final Rectangle send_feld     = new Rectangle(310, 333, 270, 78);
+	public static final Rectangle sendeButton   = new Rectangle(590, 333, 90, 77);
 }

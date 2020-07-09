@@ -32,9 +32,9 @@ import chatclient.lib.Constants;
 import chatclient.log.Log;
 import chatclient.log.LogType;
 
-public class Server extends Thread {
+class Server extends Thread {
 	/*ServerSocket object for accepting new connections*/
-	ServerSocket server;
+	private ServerSocket server;
 	/*boolean to check if this class of object has been constructed already*/
 	private static volatile boolean alreadyRunning = false;
 	

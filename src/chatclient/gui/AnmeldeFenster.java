@@ -36,9 +36,9 @@ import chatclient.log.Log;
 public class AnmeldeFenster extends JFrame {
 
   private JPanel contentPane;
-  public JTextField username_feld;
-  public JButton anmeldebutton;
-  public JCheckBox logging_box;
+  private JTextField username_feld;
+  private JButton anmeldebutton;
+  private JCheckBox logging_box;
 
   /**
    * Create the frame.
@@ -52,7 +52,7 @@ public class AnmeldeFenster extends JFrame {
     setContentPane(contentPane);
     contentPane.setLayout(null);
     setResizable(false);
-    //erstellt das leere Fenster in einer unveränderbarer Größe
+    //erstellt das leere Fenster in einer unverï¿½nderbarer Grï¿½ï¿½e
     
     ImageIcon logo = new ImageIcon(".//res//Logo_ChatClient.jpg");
     setIconImage(logo.getImage());
@@ -81,7 +81,7 @@ public class AnmeldeFenster extends JFrame {
     anmeldebutton.addActionListener(new ActionListener() {
 
         @Override
-        public void actionPerformed(ActionEvent e) {  //wird aufgerufen, wenn der Anmeldebutton gedrückt wird
+        public void actionPerformed(ActionEvent e) {  //wird aufgerufen, wenn der Anmeldebutton gedrï¿½ckt wird
             Launcher.name = username_feld.getText();
             Log.init(logging_box.isSelected());
             Launcher.loggedIn = true;   
