@@ -82,7 +82,7 @@ public class Log {
 		switch(logType) {
 		case INCOMMING_CONNECTION:
 			if(args.length != 1) throw new IllegalArgumentException();
-			sb.append("Incomming new Connection from: ");
+			sb.append("Incoming new Connection from: ");
 			sb.append(args[IP_PORT]);
 			break;
 		case CONNECTION_CLOSED:
@@ -114,7 +114,7 @@ public class Log {
 			break;
 		case MESSAGE_RECIEVED:
 			if(args.length != 3) throw new IllegalArgumentException();
-			sb.append("Recieved a new message from: ");
+			sb.append("Received a new message from: ");
 			sb.append(args[IP_PORT]);
 			sb.append(" / ");
 			sb.append(args[OTHER_NAME]);
@@ -188,14 +188,14 @@ public class Log {
 			break;
 		case MESSAGE_FORMAT_INVALID:
 			if(args.length != 2) throw new IllegalArgumentException();
-			sb.append("Recieved a new message with an invalid format in connection: ");
+			sb.append("Received a new message with an invalid format in connection: ");
 			sb.append(args[IP_PORT]);
 			sb.append(" hexmessage: ");
 			sb.append(args[HEX_MESSAGE]);
 			break;
 		case BASE64_ENCODING_INVALID:
 			if(args.length != 2) throw new IllegalArgumentException();
-			sb.append("Recieved a new message with an invalid base64 encoding in connection: ");
+			sb.append("Received a new message with an invalid base64 encoding in connection: ");
 			sb.append(args[IP_PORT]);
 			sb.append(" rawmessage: ");
 			sb.append(args[RAW_MESSAGE]);
